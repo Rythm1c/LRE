@@ -15,6 +15,9 @@ Program :: struct {
 	id: u32,
 }
 
+
+// NOTE: complete the error handling code   
+// also add helpers to send data to shaders
 load_shader :: proc(path: string, kind: u32) -> Shader {
 	result: Shader
 
@@ -33,9 +36,9 @@ load_shader :: proc(path: string, kind: u32) -> Shader {
 	gl.ShaderSource(result.id, 1, &shader_copy, &length)
 	gl.CompileShader(result.id)
 
-	success := 1
+	success: i32 = 1
 
-	//gl.GetShaderiv(result.id, gl.COMPILE_STATUS, &success)
+	gl.GetShaderiv(result.id, gl.COMPILE_STATUS, &success)
 
 	return result
 }
@@ -66,4 +69,10 @@ destroy_shader_programs :: proc(programs: []^Program) {
 	for program in programs {
 		gl.DeleteProgram(program.id)
 	}
+}
+
+use_shader_program :: proc(program: ^Program) {
+
+	gl.UseProgram(program.id)
+
 }
