@@ -1,0 +1,66 @@
+package odin_engine
+
+import "core:fmt"
+import gl "vendor:OpenGL"
+import "vendor:sdl2"
+
+width :: 800
+height :: 450
+
+main :: proc() {
+
+	// window set up and opengl 
+	if (sdl2.Init({.VIDEO}) != 0) {
+		fmt.println("failed to init sdl2!")
+	}
+
+	defer sdl2.Quit()
+
+
+	win := sdl2.CreateWindow("odin test", 100, 100, width, height, sdl2.WINDOW_OPENGL)
+
+	defer sdl2.DestroyWindow(win)
+
+	sdl2.GL_SetAttribute(.CONTEXT_PROFILE_MASK, i32(sdl2.GLprofile.CORE))
+	sdl2.GL_SetAttribute(.CONTEXT_MAJOR_VERSION, 4)
+	sdl2.GL_SetAttribute(.CONTEXT_MINOR_VERSION, 6)
+
+	gl_context := sdl2.GL_CreateContext(win)
+
+	if (sdl2.GL_MakeCurrent(win, gl_context) != 0) {
+
+		fmt.printfln("failed to make opengl context current!")
+
+	}
+	sdl2.GL_SetSwapInterval(1)
+
+
+	defer sdl2.GL_DeleteContext(gl_context)
+
+	gl.load_up_to(4, 6, sdl2.gl_set_proc_address)
+
+
+	gl.Enable(gl.DEPTH_TEST)
+
+
+	// main loop 
+	for {
+
+		if (!running) {
+			fmt.printfln("closing window!")
+			break
+		}
+
+
+		handleEvents()
+
+		gl.Viewport(0.0, 0.0, width, height)
+		gl.ClearColor(1.0, 0.5, 0.1, 1.0)
+		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+		sdl2.GL_SwapWindow(win)
+
+	}
+
+	fmt.printfln("done!")
+
+}
