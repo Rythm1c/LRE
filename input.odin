@@ -2,7 +2,6 @@ package odin_engine
 
 import "vendor:sdl2"
 
-running := true
 
 handleEvents :: proc() {
 
