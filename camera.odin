@@ -52,6 +52,8 @@ camera_rotate :: proc(x, y: i32) {
 	fy := la.sin(camera.pitch)
 	fz := la.cos(camera.pitch) * la.sin(camera.yaw)
 
+	camera.front = [3]f32{fx, fy, fz}
+
 }
 
 

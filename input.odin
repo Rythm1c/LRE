@@ -40,19 +40,18 @@ handle_events :: proc() {
 
 	if (keyboard[sdl2.SCANCODE_W] == 1) {
 		camera_move_forwards()
-		fmt.printfln("forwards")
 	}
+
 	if (keyboard[sdl2.SCANCODE_S] == 1) {
 		camera_move_backwards()
-		fmt.printfln("backwards")
 	}
+
 	if (keyboard[sdl2.SCANCODE_A] == 1) {
 		camera_move_left()
-		fmt.printfln("left")
 	}
+
 	if (keyboard[sdl2.SCANCODE_D] == 1) {
 		camera_move_right()
-		fmt.printfln("right")
 	}
 
 }

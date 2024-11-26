@@ -9,8 +9,11 @@ main :: proc() {
 
 	init_window()
 	defer clean_window()
-	
+
 	get_keys()
+
+	init_world()
+	defer destroy_world()
 
 	// main loop 
 	for {
@@ -21,7 +24,8 @@ main :: proc() {
 		}
 		handle_events()
 		clear_window()
-		// rendering comes here
+		update_world()
+		render_world()
 		swap_window()
 
 	}

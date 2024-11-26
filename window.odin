@@ -9,8 +9,8 @@ running := true
 win: ^sdl2.Window
 gl_context: sdl2.GLContext
 
-width :: 800
-height :: 450
+width: u32 = 800
+height: u32 = 450
 
 // set up opengl and sdl2
 init_window :: proc() {
@@ -20,7 +20,7 @@ init_window :: proc() {
 	}
 
 
-	win = sdl2.CreateWindow("odin test", 100, 100, width, height, sdl2.WINDOW_OPENGL)
+	win = sdl2.CreateWindow("odin test", 100, 100, i32(width), i32(height), sdl2.WINDOW_OPENGL)
 
 
 	sdl2.GL_SetAttribute(.CONTEXT_PROFILE_MASK, i32(sdl2.GLprofile.CORE))
@@ -46,7 +46,7 @@ init_window :: proc() {
 // clear window for next render call 
 clear_window :: proc() {
 
-	gl.Viewport(0.0, 0.0, width, height)
+	gl.Viewport(0.0, 0.0, i32(width), i32(height))
 	gl.ClearColor(1.0, 0.5, 0.1, 1.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 }
