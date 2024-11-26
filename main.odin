@@ -4,14 +4,13 @@ import "core:fmt"
 import gl "vendor:OpenGL"
 import "vendor:sdl2"
 
-width :: 800
-height :: 450
 
 main :: proc() {
 
 	init_window()
-
 	defer clean_window()
+	
+	get_keys()
 
 	// main loop 
 	for {
@@ -20,15 +19,10 @@ main :: proc() {
 			fmt.printfln("closing window")
 			break
 		}
-
-
-		handleEvents()
-
+		handle_events()
 		clear_window()
-		// rendering 
-
+		// rendering comes here
 		swap_window()
-
 
 	}
 

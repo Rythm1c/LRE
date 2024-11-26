@@ -9,6 +9,9 @@ running := true
 win: ^sdl2.Window
 gl_context: sdl2.GLContext
 
+width :: 800
+height :: 450
+
 // set up opengl and sdl2
 init_window :: proc() {
 	// window set up and opengl 
