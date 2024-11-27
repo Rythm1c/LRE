@@ -4,9 +4,10 @@ layout(location = 0) in vec3 pos;
 layout(location = 1) in vec3 norm;
 layout(location = 2) in vec2 uv;
 
-out struct VsOut {
+out VsOut {
     vec2 uv;
     vec3 norm;
+    vec3 fragPos;
 } vsOut;
 
 uniform mat4 model;
@@ -18,4 +19,5 @@ void main() {
     gl_Position = proj * view * model * vec4(pos, 1.0);
     vsOut.uv = uv;
     vsOut.norm = norm;
+    vsOut.fragPos = vec3(model * vec4(pos, 1.0));
 }

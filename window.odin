@@ -61,7 +61,7 @@ swap_window :: proc() {
 
 clean_window :: proc() {
 
-	defer sdl2.DestroyWindow(win)
-	defer sdl2.GL_DeleteContext(gl_context)
-	defer sdl2.Quit()
+	sdl2.DestroyWindow(win)
+	sdl2.GL_DeleteContext(gl_context)
+	sdl2.Quit()
 }
