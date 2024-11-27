@@ -12,6 +12,8 @@ gl_context: sdl2.GLContext
 width: u32 = 600
 height: u32 = 450
 
+win_ratio :: proc() -> f32 {return f32(width) / f32(height)}
+
 // set up opengl and sdl2
 init_window :: proc() {
 	// window set up and opengl 

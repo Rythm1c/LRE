@@ -10,7 +10,7 @@ handle_events :: proc() {
 
 	event: sdl2.Event
 
-	if (sdl2.PollEvent(&event)) {
+	for sdl2.PollEvent(&event) {
 
 		#partial switch event.type {
 

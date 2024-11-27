@@ -22,7 +22,7 @@ init_mesh :: proc(mesh: ^Mesh) {
 	gl.BufferData(
 		gl.ARRAY_BUFFER,
 		len(mesh.vertices) * size_of(Vertex),
-		&mesh.vertices,
+		raw_data(mesh.vertices),
 		gl.STATIC_DRAW,
 	)
 
@@ -32,13 +32,13 @@ init_mesh :: proc(mesh: ^Mesh) {
 		gl.BufferData(
 			gl.ELEMENT_ARRAY_BUFFER,
 			size_of(u32) * len(mesh.indices),
-			&mesh.indices,
+			raw_data(mesh.indices),
 			gl.STATIC_DRAW,
 		)
 	}
 
 	gl.EnableVertexAttribArray(0)
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, size_of(Vertex), 0)
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, size_of(Vertex), uintptr(0))
 
 	gl.EnableVertexAttribArray(1)
 	gl.VertexAttribPointer(1, 3, gl.FLOAT, false, size_of(Vertex), offset_of(Vertex, norm))

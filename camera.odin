@@ -38,7 +38,7 @@ camera_move_backwards :: proc() {
 
 
 camera_rotate :: proc(x, y: i32) {
-	sensitivity: f32 = 0.2
+	sensitivity: f32 = 0.15
 
 
 	camera.yaw += la.to_radians(sensitivity * f32(x))
@@ -52,12 +52,12 @@ camera_rotate :: proc(x, y: i32) {
 	fy := la.sin(camera.pitch)
 	fz := la.cos(camera.pitch) * la.sin(camera.yaw)
 
-	camera.front = [3]f32{fx, fy, fz}
+	camera.front = la.vector_normalize([3]f32{fx, fy, fz})
 
 }
 
 
-camera_view :: proc() -> la.Matrix4f32 {
+camera_view :: proc() -> Mat4 {
 
 	return la.matrix4_look_at_f32(
 		camera.pos, //

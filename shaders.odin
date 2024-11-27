@@ -60,7 +60,7 @@ update_uniform_vec3 :: proc(id: u32, name: string, v: [3]f32) {
 
 }
 
-update_uniform_mat4 :: proc(id: u32, name: string, mat: ^la.Matrix4f32) {
+update_uniform_mat4 :: proc(id: u32, name: string, mat: ^Mat4) {
 
 	location := uniform_location(id, name)
 	gl.UniformMatrix4fv(location, 1, false, &mat[0, 0])
