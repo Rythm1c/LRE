@@ -1,15 +1,19 @@
-package odin_engine
+package lre
 
 import gl "vendor:OpenGL"
 
-shader: Program
+program: u32
+cube: Mesh
+
 
 init_world :: proc() {
 
-	vert := load_shader("shaders/shader.vert", gl.VERTEX_SHADER)
-	frag := load_shader("shaders/shader.frag", gl.FRAGMENT_SHADER)
-	shader = create_shader_program({vert, frag})
-	defer destroy_shaders({&vert, &frag})
+	fs_src: string = "shaders/shader.frag"
+	vs_src: string = "shaders/shader.vert"
+
+	program, _ = gl.load_shaders_file(vs_src, fs_src)
+
+	cube = Cube()
 
 
 }
@@ -20,10 +24,11 @@ update_world :: proc() {
 
 render_world :: proc() {
 
-	use_shader_program(&shader)
+	use_shader_program(program)
 }
 
 destroy_world :: proc() {
 
-	destroy_shader_programs({&shader})
+	destroy_shader_programs({program})
+	destroy_mesh(&cube)
 }

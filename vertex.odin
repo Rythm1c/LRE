@@ -1,4 +1,4 @@
-package odin_engine
+package lre
 
 Vertex :: struct {
 	pos, norm: [3]f32,

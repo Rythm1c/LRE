@@ -1,4 +1,4 @@
-package odin_engine
+package lre
 
 import gl "vendor:OpenGL"
 

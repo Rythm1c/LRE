@@ -1,4 +1,4 @@
-package odin_engine
+package lre
 
 import "core:fmt"
 import gl "vendor:OpenGL"
@@ -9,7 +9,7 @@ running := true
 win: ^sdl2.Window
 gl_context: sdl2.GLContext
 
-width: u32 = 800
+width: u32 = 600
 height: u32 = 450
 
 // set up opengl and sdl2
@@ -47,7 +47,7 @@ init_window :: proc() {
 clear_window :: proc() {
 
 	gl.Viewport(0.0, 0.0, i32(width), i32(height))
-	gl.ClearColor(1.0, 0.5, 0.1, 1.0)
+	gl.ClearColor(0.1, 0.5, 0.1, 1.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 }
 

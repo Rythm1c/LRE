@@ -1,78 +1,67 @@
-package odin_engine
+package lre
 
+import "base:runtime"
 import "core:c"
 import "core:fmt"
 import "core:os"
 import "core:strings"
+
+import la "core:math/linalg"
 import gl "vendor:OpenGL"
 
 
-Shader :: struct {
-	id: u32,
-}
-
-Program :: struct {
-	id: u32,
-}
-
-
-// NOTE: complete the error handling code   
-// also add helpers to send data to shaders
-load_shader :: proc(path: string, kind: u32) -> Shader {
-	result: Shader
-
-	data, ok := os.read_entire_file(path, context.allocator)
-	if (!ok) {
-		fmt.printfln("failed to open shader file!")
-	}
-	defer delete(data, context.allocator)
-
-	shader := string(data)
-	length := i32(len(shader))
-	shader_copy := cstring(raw_data(shader))
-
-	result.id = gl.CreateShader(kind)
-
-	gl.ShaderSource(result.id, 1, &shader_copy, &length)
-	gl.CompileShader(result.id)
-
-	success: i32 = 1
-
-	gl.GetShaderiv(result.id, gl.COMPILE_STATUS, &success)
-
-	return result
-}
-
-destroy_shaders :: proc(shaders: []^Shader) {
+destroy_shaders :: proc(shaders: []u32) {
 
 	for shader in shaders {
-		gl.DeleteShader(shader.id)
+		gl.DeleteShader(shader)
 	}
 
 }
 
-create_shader_program :: proc(shaders: []Shader) -> Program {
-	result: Program
-
-	result.id = gl.CreateProgram()
-
-	for shader in shaders {
-		gl.AttachShader(result.id, shader.id)
-	}
-
-	gl.LinkProgram(result.id)
-
-	return result
-}
-destroy_shader_programs :: proc(programs: []^Program) {
+destroy_shader_programs :: proc(programs: []u32) {
 
 	for program in programs {
-		gl.DeleteProgram(program.id)
+		gl.DeleteProgram(program)
 	}
 }
 
-use_shader_program :: proc(program: ^Program) {
+use_shader_program :: proc(program: u32) {
 
-	gl.UseProgram(program.id)
+	gl.UseProgram(program)
 
+}
+
+@(private)
+uniform_location :: proc(id: u32, name: string) -> i32 {
+
+	name_copy := cstring(raw_data(name))
+	return gl.GetUniformLocation(id, name_copy)
+}
+
+update_uniform_int :: proc(id: u32, name: string, v: i32) {
+
+	location := uniform_location(id, name)
+	gl.Uniform1i(location, v)
+
+}
+
+update_uniform_float :: proc(id: u32, name: string, v: f32) {
+
+	location := uniform_location(id, name)
+	gl.Uniform1f(location, v)
+
+}
+
+update_uniform_vec3 :: proc(id: u32, name: string, v: [3]f32) {
+
+	location := uniform_location(id, name)
+	gl.Uniform3f(location, v[0], v[1], v[2])
+
+
+}
+
+update_uniform_mat4 :: proc(id: u32, name: string, mat: ^la.Matrix4f32) {
+
+	location := uniform_location(id, name)
+	gl.UniformMatrix4fv(location, 1, false, &mat[0, 0])
 }
