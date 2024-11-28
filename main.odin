@@ -40,7 +40,7 @@ main :: proc() {
 		duration := time.stopwatch_duration(stopWatch)
 		fps := 1e0 / time.duration_seconds(duration)
 
-		fmt.printfln("{}", i64(fps))
+		//fmt.printfln("\r{}", i64(fps))
 
 	}
 

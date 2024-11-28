@@ -6,10 +6,10 @@ import gl "vendor:OpenGL"
 program: u32
 
 // test shapes
-cube: Mesh
-sphere: Mesh
-torus: Mesh
-platform: Mesh
+cube: Shape
+sphere: Shape
+torus: Shape
+platform: Shape
 
 model: Mat4
 view: Mat4
@@ -23,10 +23,32 @@ init_world :: proc() {
 
 	program, _ = gl.load_shaders_file(vs_src, fs_src)
 
-	platform = Cube()
-	cube = Cube()
-	torus = Torus(60)
-	sphere = Sphere(60, 60)
+	platform.mesh = Cube()
+	platform.color = {0.2, 0.9, 0.8}
+	platform.transform.position = {0.0, -1.0, 0.0}
+	platform.transform.scaling = {400.0, 1.0, 400.0}
+	cube.transform.rotation = quaternion(w = 1, x = 0, y = 0, z = 0)
+
+	cube.mesh = Cube()
+	cube.color = {0.9, 0.5, 0.6}
+	cube.transform.position = {0.0, 3.0, 15.0}
+	cube.transform.scaling = {1.0, 1.0, 1.0}
+	cube.transform.rotation = quaternion(w = 1, x = 0, y = 0, z = 0)
+
+	torus.mesh = Torus(60)
+	torus.color = {0.1, 0.9, 0.7}
+	torus.transform.position = {-6.0, 3.0, 13.0}
+	torus.transform.scaling = {3.0, 3.0, 3.0}
+	torus.transform.rotation = quaternion(w = 1, x = 0, y = 0, z = 0)
+
+	sphere.mesh = Sphere(60, 60)
+	sphere.color = {0.1, 0.4, 0.7}
+	sphere.transform.position = {5.0, 4.0, 15.0}
+	sphere.transform.scaling = {2.0, 2.0, 2.0}
+	sphere.transform.rotation = quaternion(w = 1, x = 0, y = 0, z = 0)
+
+	camera.pos = {0.0, 7.0, -3.0}
+
 
 }
 
@@ -45,32 +67,32 @@ render_world :: proc() {
 
 	use_shader_program(program)
 	//update per object
-	model = la.matrix4_translate_f32({0.0, 3.0, 15.0})
+	model = transform_to_mat(cube.transform)
 	update_uniform_mat4(program, "model", &model)
-	update_uniform_vec3(program, "inCol", {0.9, 0.5, 0.6})
-	render_mesh(&cube)
+	update_uniform_vec3(program, "inCol", cube.color)
+	render_shape(&cube)
 
-	model = la.matrix4_translate_f32({5.0, 4.0, 15.0}) * la.matrix4_scale_f32({2.0, 2.0, 2.0})
+	model = transform_to_mat(sphere.transform)
 	update_uniform_mat4(program, "model", &model)
-	update_uniform_vec3(program, "inCol", {0.1, 0.4, 0.7})
-	render_mesh(&sphere)
+	update_uniform_vec3(program, "inCol", sphere.color)
+	render_shape(&sphere)
 
-	model = la.matrix4_translate_f32({-6.0, 3.0, 13.0}) * la.matrix4_scale_f32({3.0, 3.0, 3.0})
+	model = transform_to_mat(torus.transform)
 	update_uniform_mat4(program, "model", &model)
-	update_uniform_vec3(program, "inCol", {0.1, 0.9, 0.7})
-	render_mesh(&torus)
+	update_uniform_vec3(program, "inCol", torus.color)
+	render_shape(&torus)
 
-	model = la.matrix4_translate_f32({0.0, -1.0, 0.0}) * la.matrix4_scale_f32({400.0, 1.0, 400.0})
+	model = transform_to_mat(platform.transform)
 	update_uniform_mat4(program, "model", &model)
-	update_uniform_vec3(program, "inCol", {0.2, 0.9, 0.8})
-	render_mesh(&platform)
+	update_uniform_vec3(program, "inCol", platform.color)
+	render_shape(&platform)
 }
 
 destroy_world :: proc() {
 
 	destroy_shader_programs({program})
-	destroy_mesh(&cube)
-	destroy_mesh(&platform)
-	destroy_mesh(&sphere)
-	destroy_mesh(&torus)
+	destroy_shape(&cube)
+	destroy_shape(&platform)
+	destroy_shape(&sphere)
+	destroy_shape(&torus)
 }
