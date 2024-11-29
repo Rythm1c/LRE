@@ -54,7 +54,7 @@ init_world :: proc() {
 
 update_world :: proc() {
 	view = camera_view()
-	proj = la.matrix4_perspective_f32(fov, win_ratio(), 0.01, 200.0)
+	proj = la.matrix4_perspective_f32(fov, win_ratio(), 0.01, 600.0)
 
 	//update once
 	use_shader_program(program)
