@@ -51,8 +51,11 @@ init_world :: proc() {
 	astronaut.meshes = extract_gltf_meshes("models/astronaut/scene.gltf")
 	astronaut.color = {1.0, 1.0, 1.0}
 	astronaut.transform.position = {1.0, 4.0, 7.0}
-	astronaut.transform.scaling = {2.0, 2.0, 2.0}
-	astronaut.transform.rotation = quaternion(w = 1, x = 0, y = 0, z = 0)
+	astronaut.transform.scaling = {0.2, 0.2, 0.2}
+	astronaut.transform.rotation = la.quaternion_angle_axis_f32(
+		la.to_radians(f32(180)),
+		{0.0, 1.0, 0.0},
+	)
 
 	camera.pos = {0.0, 7.0, -3.0}
 
@@ -74,6 +77,11 @@ render_world :: proc() {
 
 	use_shader_program(program)
 	//update per object
+	model = transform_to_mat(astronaut.transform)
+	update_uniform_mat4(program, "model", &model)
+	update_uniform_vec3(program, "inCol", astronaut.color)
+	render_model(&astronaut)
+
 	model = transform_to_mat(cube.transform)
 	update_uniform_mat4(program, "model", &model)
 	update_uniform_vec3(program, "inCol", cube.color)
@@ -94,10 +102,7 @@ render_world :: proc() {
 	update_uniform_vec3(program, "inCol", platform.color)
 	render_shape(&platform)
 
-	model = transform_to_mat(astronaut.transform)
-	update_uniform_mat4(program, "model", &model)
-	update_uniform_vec3(program, "inCol", astronaut.color)
-	render_model(&astronaut)
+
 }
 
 destroy_world :: proc() {

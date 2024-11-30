@@ -18,6 +18,6 @@ void main() {
 
     gl_Position = proj * view * model * vec4(pos, 1.0);
     vsOut.uv = uv;
-    vsOut.norm = norm;
+    vsOut.norm = mat3(transpose(inverse(model))) * norm;
     vsOut.fragPos = vec3(model * vec4(pos, 1.0));
 }

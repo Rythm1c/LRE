@@ -16,6 +16,8 @@ render_model :: proc(model: ^Model) {
 		render_mesh(&mesh)
 
 	}
+
+
 }
 
 destroy_model :: proc(model: ^Model) {
@@ -32,15 +34,23 @@ extract_gltf_meshes :: proc(path: cstring) -> [dynamic]Mesh {
 
 	options: cgltf.options
 	data, results := cgltf.parse_file(options, path)
+	if (results != cgltf.result.success) {
+		fmt.printfln("failed to load gltf file")
+	}
+	defer cgltf.free(data)
 
-	for &_node in data.nodes {
+	if cgltf.load_buffers(options, data, path) != cgltf.result.success {
+		fmt.printfln("failed to load gltf buffers")
+	}
 
-		if (_node.mesh == nil) {
-			continue
-		}
+	for &_mesh in data.meshes {
 
-		primitives := _node.mesh.primitives
+
+		primitives := _mesh.primitives
 		for &_primitive in primitives {
+			if (_primitive.attributes == nil) {
+				continue
+			}
 
 			mesh: Mesh
 
@@ -112,27 +122,32 @@ extract_gltf_meshes :: proc(path: cstring) -> [dynamic]Mesh {
 			}
 
 			posCount := len(positions)
-			
 
 			resize(&mesh.vertices, posCount)
 
 			for i: u32 = 0; i < u32(posCount); i += 1 {
 
 				vert: Vertex
+
 				vert.pos = positions[i]
+				//fmt.printfln("pos value {}",vert.pos)
 				vert.norm = normals[i]
+
 				vert.uv = [2]f32{0.0, 0.0}
 				if (i < u32(len(uvs))) {
+
 					vert.uv = uvs[i]
+
 				}
 
+				mesh.vertices[i] = vert
 
 			}
 
 			// check whether the mesh contains indices or not 
 			// if not do nathing 
 			indexCount := _primitive.indices.count
-			
+
 			if (indexCount != 0) {
 
 				resize_dynamic_array(&mesh.indices, indexCount)
