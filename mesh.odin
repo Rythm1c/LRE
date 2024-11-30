@@ -68,6 +68,7 @@ render_mesh :: proc(mesh: ^Mesh) {
 
 
 	}
+	
 }
 
 destroy_mesh :: proc(mesh: ^Mesh) {

@@ -10,6 +10,7 @@ cube: Shape
 sphere: Shape
 torus: Shape
 platform: Shape
+astronaut: Model
 
 model: Mat4
 view: Mat4
@@ -46,6 +47,12 @@ init_world :: proc() {
 	sphere.transform.position = {5.0, 4.0, 15.0}
 	sphere.transform.scaling = {2.0, 2.0, 2.0}
 	sphere.transform.rotation = quaternion(w = 1, x = 0, y = 0, z = 0)
+
+	astronaut.meshes = extract_gltf_meshes("models/astronaut/scene.gltf")
+	astronaut.color = {1.0, 1.0, 1.0}
+	astronaut.transform.position = {1.0, 4.0, 7.0}
+	astronaut.transform.scaling = {2.0, 2.0, 2.0}
+	astronaut.transform.rotation = quaternion(w = 1, x = 0, y = 0, z = 0)
 
 	camera.pos = {0.0, 7.0, -3.0}
 
@@ -86,11 +93,17 @@ render_world :: proc() {
 	update_uniform_mat4(program, "model", &model)
 	update_uniform_vec3(program, "inCol", platform.color)
 	render_shape(&platform)
+
+	model = transform_to_mat(astronaut.transform)
+	update_uniform_mat4(program, "model", &model)
+	update_uniform_vec3(program, "inCol", astronaut.color)
+	render_model(&astronaut)
 }
 
 destroy_world :: proc() {
 
 	destroy_shader_programs({program})
+	destroy_model(&astronaut)
 	destroy_shape(&cube)
 	destroy_shape(&platform)
 	destroy_shape(&sphere)
