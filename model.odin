@@ -29,19 +29,27 @@ destroy_model :: proc(model: ^Model) {
 	}
 }
 
-extract_gltf_meshes :: proc(path: cstring) -> [dynamic]Mesh {
-	meshes: [dynamic]Mesh
+extract_gltf_data :: proc(path: cstring) -> ^cgltf.data {
 
 	options: cgltf.options
 	data, results := cgltf.parse_file(options, path)
 	if (results != cgltf.result.success) {
 		fmt.printfln("failed to load gltf file")
 	}
-	defer cgltf.free(data)
+
 
 	if cgltf.load_buffers(options, data, path) != cgltf.result.success {
 		fmt.printfln("failed to load gltf buffers")
 	}
+
+	return data
+}
+
+destroy_gltf_data :: proc(data: ^cgltf.data) {defer cgltf.free(data)}
+
+extract_gltf_meshes :: proc(data: ^cgltf.data) -> [dynamic]Mesh {
+	meshes: [dynamic]Mesh
+
 
 	for &_mesh in data.meshes {
 
@@ -170,6 +178,7 @@ extract_gltf_meshes :: proc(path: cstring) -> [dynamic]Mesh {
 	return meshes
 }
 
+@(private)
 get_scalar_values :: proc(out: ^[dynamic]f32, compCount: u32, accessor: ^cgltf.accessor) {
 
 	resize(out, u32(accessor.count) * compCount)

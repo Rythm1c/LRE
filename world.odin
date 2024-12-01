@@ -48,7 +48,9 @@ init_world :: proc() {
 	sphere.transform.scaling = {2.0, 2.0, 2.0}
 	sphere.transform.rotation = quaternion(w = 1, x = 0, y = 0, z = 0)
 
-	astronaut.meshes = extract_gltf_meshes("models/astronaut/scene.gltf")
+	astronautData := extract_gltf_data("models/astronaut/scene.gltf")
+	defer destroy_gltf_data(astronautData)
+	astronaut.meshes = extract_gltf_meshes(astronautData)
 	astronaut.color = {1.0, 1.0, 1.0}
 	astronaut.transform.position = {1.0, 4.0, 7.0}
 	astronaut.transform.scaling = {0.2, 0.2, 0.2}
