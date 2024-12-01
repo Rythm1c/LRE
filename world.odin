@@ -10,17 +10,22 @@ cube: Shape
 sphere: Shape
 torus: Shape
 platform: Shape
+
+// 3D gltf models
 astronaut: Model
+astronautSrc: cstring = "models/astronaut/scene.gltf"
 
 model: Mat4
 view: Mat4
 proj: Mat4
 fov := la.to_radians(f32(45.0))
 
+//shader sources/locations
+fs_src: string = "shaders/shader.frag"
+vs_src: string = "shaders/shader.vert"
+
 init_world :: proc() {
 
-	fs_src: string = "shaders/shader.frag"
-	vs_src: string = "shaders/shader.vert"
 
 	program, _ = gl.load_shaders_file(vs_src, fs_src)
 
@@ -48,7 +53,7 @@ init_world :: proc() {
 	sphere.transform.scaling = {2.0, 2.0, 2.0}
 	sphere.transform.rotation = quaternion(w = 1, x = 0, y = 0, z = 0)
 
-	astronautData := extract_gltf_data("models/astronaut/scene.gltf")
+	astronautData := extract_gltf_data(astronautSrc)
 	defer destroy_gltf_data(astronautData)
 	astronaut.meshes = extract_gltf_meshes(astronautData)
 	astronaut.color = {1.0, 1.0, 1.0}

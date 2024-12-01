@@ -34,12 +34,16 @@ extract_gltf_data :: proc(path: cstring) -> ^cgltf.data {
 	options: cgltf.options
 	data, results := cgltf.parse_file(options, path)
 	if (results != cgltf.result.success) {
+
 		fmt.printfln("failed to load gltf file")
+
 	}
 
 
 	if cgltf.load_buffers(options, data, path) != cgltf.result.success {
+
 		fmt.printfln("failed to load gltf buffers")
+
 	}
 
 	return data
@@ -47,8 +51,7 @@ extract_gltf_data :: proc(path: cstring) -> ^cgltf.data {
 
 destroy_gltf_data :: proc(data: ^cgltf.data) {defer cgltf.free(data)}
 
-extract_gltf_meshes :: proc(data: ^cgltf.data) -> [dynamic]Mesh {
-	meshes: [dynamic]Mesh
+extract_gltf_meshes :: proc(data: ^cgltf.data) -> (meshes: [dynamic]Mesh) {
 
 
 	for &_mesh in data.meshes {
@@ -67,7 +70,7 @@ extract_gltf_meshes :: proc(data: ^cgltf.data) -> [dynamic]Mesh {
 			uvs: [dynamic][2]f32
 
 
-			//first extract the vertex data(attributes)
+			//first extract the vertex data(attributes) individually
 			for &_attribute in _primitive.attributes {
 
 				attrAccessor := _attribute.data
@@ -138,7 +141,7 @@ extract_gltf_meshes :: proc(data: ^cgltf.data) -> [dynamic]Mesh {
 				vert: Vertex
 
 				vert.pos = positions[i]
-				//fmt.printfln("pos value {}",vert.pos)
+
 				vert.norm = normals[i]
 
 				vert.uv = [2]f32{0.0, 0.0}
@@ -175,7 +178,7 @@ extract_gltf_meshes :: proc(data: ^cgltf.data) -> [dynamic]Mesh {
 	}
 
 
-	return meshes
+	return
 }
 
 @(private)

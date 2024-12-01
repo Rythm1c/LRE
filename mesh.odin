@@ -22,7 +22,7 @@ init_mesh :: proc(mesh: ^Mesh) {
 	gl.BufferData(
 		gl.ARRAY_BUFFER,
 		len(mesh.vertices) * size_of(Vertex),
-		raw_data(mesh.vertices),
+		&mesh.vertices[0], // or us raw_data(mesh.vertices) 
 		gl.STATIC_DRAW,
 	)
 
@@ -32,7 +32,7 @@ init_mesh :: proc(mesh: ^Mesh) {
 		gl.BufferData(
 			gl.ELEMENT_ARRAY_BUFFER,
 			size_of(u32) * len(mesh.indices),
-			raw_data(mesh.indices),
+			&mesh.indices[0], // or us raw_data(mesh.indices) 
 			gl.STATIC_DRAW,
 		)
 	}
@@ -68,7 +68,7 @@ render_mesh :: proc(mesh: ^Mesh) {
 
 
 	}
-	
+
 }
 
 destroy_mesh :: proc(mesh: ^Mesh) {
