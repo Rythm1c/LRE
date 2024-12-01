@@ -33,8 +33,8 @@ float grid(int nLines, vec2 uv) {
     float y = fract(uv.y / pos);
 
     vec2 e = vec2(0.005); // edge
-    vec2 step1 = step(e, fract(vec2(x, y)));
-    vec2 step2 = step(e, 1.0 - fract(vec2(x, y)));
+    vec2 step1 = step(e, vec2(x, y));
+    vec2 step2 = step(e, 1.0 - vec2(x, y));
 
     return step1.x * step1.y * step2.x * step2.y;
 
