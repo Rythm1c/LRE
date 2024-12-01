@@ -18,14 +18,7 @@ main :: proc() {
 
 
 	// main loop 
-	for {
-
-
-		if (!running) {
-			fmt.printfln("closing window")
-			break
-		}
-
+	for running != false {
 
 		stopWatch: time.Stopwatch
 		time.stopwatch_start(&stopWatch)
