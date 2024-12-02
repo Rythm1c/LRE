@@ -41,6 +41,11 @@ texture_from_file :: proc(path: string) -> (texture: u32) {
 	return
 }
 
+bind_texture :: proc(id: u32) {
+
+	gl.BindTexture(gl.TEXTURE_2D, id)
+}
+
 destroy_texture :: proc(texture: ^u32) {
 
 	gl.DeleteTextures(1, texture)

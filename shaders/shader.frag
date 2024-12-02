@@ -10,7 +10,7 @@ uniform vec3 inCol;
 uniform vec3 lDir;
 out vec4 color;
 
-uniform bool texuted;
+uniform bool textured;
 uniform sampler2D tex;
 
 float grid(int nLines, vec2 uv);
@@ -18,13 +18,20 @@ float grid(int nLines, vec2 uv);
 void main() {
     vec3 result = vec3(0.0);
 
-    vec3 ambient = vec3(0.15) * inCol;
+    vec3 finalColor = vec3(1.0);
+    if(textured) {
+        finalColor = vec3(texture(tex, fsIn.uv));
+    } else {
+        finalColor = inCol;
+    }
+
+    vec3 ambient = vec3(0.15) * finalColor;
     result += ambient;
 
     vec3 norm = normalize(fsIn.norm);
     vec3 lightDir = normalize(-lDir);
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * inCol;
+    vec3 diffuse = diff * finalColor;
     result += diffuse;
 
     color = vec4(result, 1.0);

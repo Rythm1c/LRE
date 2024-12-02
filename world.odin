@@ -31,6 +31,8 @@ init_world :: proc() {
 
 
 	program, _ = gl.load_shaders_file(vs_src, fs_src)
+	use_shader_program(program)
+	update_uniform_int(program, "tex", 0)
 
 	platform.mesh = Cube()
 	platform.color = {0.2, 0.9, 0.8}
@@ -89,26 +91,33 @@ render_world :: proc() {
 	use_shader_program(program)
 	//update per object
 	model = transform_to_mat(astronaut.transform)
+	update_uniform_int(program, "textured", 1)
+	gl.ActiveTexture(gl.TEXTURE0)
+	bind_texture(textureId)
 	update_uniform_mat4(program, "model", &model)
 	update_uniform_vec3(program, "inCol", astronaut.color)
 	render_model(&astronaut)
 
 	model = transform_to_mat(cube.transform)
+	update_uniform_int(program, "textured", 0)
 	update_uniform_mat4(program, "model", &model)
 	update_uniform_vec3(program, "inCol", cube.color)
 	render_shape(&cube)
 
 	model = transform_to_mat(sphere.transform)
+	update_uniform_int(program, "textured", 0)
 	update_uniform_mat4(program, "model", &model)
 	update_uniform_vec3(program, "inCol", sphere.color)
 	render_shape(&sphere)
 
 	model = transform_to_mat(torus.transform)
+	update_uniform_int(program, "textured", 0)
 	update_uniform_mat4(program, "model", &model)
 	update_uniform_vec3(program, "inCol", torus.color)
 	render_shape(&torus)
 
 	model = transform_to_mat(platform.transform)
+	update_uniform_int(program, "textured", 0)
 	update_uniform_mat4(program, "model", &model)
 	update_uniform_vec3(program, "inCol", platform.color)
 	render_shape(&platform)
