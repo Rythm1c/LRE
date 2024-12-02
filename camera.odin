@@ -13,7 +13,7 @@ camera := Camera {
 	yaw      = la.to_radians(f32(90.0)),
 	pitch    = 0.0,
 	velocity = 0.5,
-	pos      = [3]f32{0.0, 3.0, 0.0},
+	pos      = [3]f32{0.0, 15.0, 0.0},
 	front    = [3]f32{0.0, 0.0, 1.0},
 	up       = [3]f32{0.0, 1.0, 0.0},
 }

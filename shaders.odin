@@ -31,7 +31,7 @@ use_shader_program :: proc(program: u32) {
 
 }
 
-@(private)
+@(private = "file")
 uniform_location :: proc(id: u32, name: string) -> i32 {
 
 	name_copy := cstring(raw_data(name))

@@ -10,6 +10,9 @@ uniform vec3 inCol;
 uniform vec3 lDir;
 out vec4 color;
 
+uniform bool texuted;
+uniform sampler2D tex;
+
 float grid(int nLines, vec2 uv);
 
 void main() {

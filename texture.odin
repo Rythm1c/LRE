@@ -1,6 +1,7 @@
 package lre
 
 import "core:image"
+import "core:image/png"
 import gl "vendor:OpenGL"
 
 
@@ -8,6 +9,7 @@ texture_from_file :: proc(path: string) -> (texture: u32) {
 
 
 	img, err := image.load_from_file(path)
+	//image.register(.PNG,)
 	defer image.destroy(img)
 
 

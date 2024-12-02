@@ -181,7 +181,7 @@ extract_gltf_meshes :: proc(data: ^cgltf.data) -> (meshes: [dynamic]Mesh) {
 	return
 }
 
-@(private)
+@(private = "file")
 get_scalar_values :: proc(out: ^[dynamic]f32, compCount: u32, accessor: ^cgltf.accessor) {
 
 	resize(out, u32(accessor.count) * compCount)

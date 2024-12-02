@@ -1,5 +1,6 @@
 package lre
 
+
 Shape :: struct {
 	mesh:      Mesh,
 	color:     [3]f32,
