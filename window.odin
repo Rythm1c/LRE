@@ -1,5 +1,6 @@
 package lre
 
+import "core:c"
 import "core:fmt"
 import gl "vendor:OpenGL"
 import "vendor:sdl2"
@@ -9,8 +10,8 @@ running := true
 win: ^sdl2.Window
 gl_context: sdl2.GLContext
 
-width: u32 = 600
-height: u32 = 450
+width, height: u32 = 800, 600
+
 
 win_ratio :: proc() -> f32 {return f32(width) / f32(height)}
 
@@ -21,8 +22,9 @@ init_window :: proc() {
 		fmt.println("failed to init sdl2!")
 	}
 
+	flags := sdl2.WINDOW_OPENGL | sdl2.WINDOW_RESIZABLE
 
-	win = sdl2.CreateWindow("odin test", 100, 100, i32(width), i32(height), sdl2.WINDOW_OPENGL)
+	win = sdl2.CreateWindow("odin test", 100, 100, i32(width), i32(height), flags)
 
 
 	sdl2.GL_SetAttribute(.CONTEXT_PROFILE_MASK, i32(sdl2.GLprofile.CORE))
@@ -53,6 +55,15 @@ clear_window :: proc() {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 }
 
+resize_window :: proc() {
+	w: c.int
+	h: c.int
+
+	sdl2.GetWindowSize(win, &w, &h)
+
+	width = u32(w)
+	height = u32(h)
+}
 
 swap_window :: proc() {
 	sdl2.GL_SwapWindow(win)

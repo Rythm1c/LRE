@@ -34,7 +34,17 @@ handle_events :: proc() {
 				camera_rotate(x, y)
 			}
 
+
+		case .WINDOWEVENT:
+			#partial switch event.window.event {
+			case .RESIZED:
+				resize_window()
+
+			}
+
 		}
+
+
 	}
 
 

@@ -37,7 +37,7 @@ init_world :: proc() {
 	platform.mesh = Cube()
 	platform.color = {0.2, 0.9, 0.8}
 	platform.transform.position = {0.0, -1.0, 0.0}
-	platform.transform.scaling = {100.0, 1.0, 100.0}
+	platform.transform.scaling = {1e2, 1.0, 1e2}
 	cube.transform.rotation = quaternion(w = 1, x = 0, y = 0, z = 0)
 
 	cube.mesh = Cube()
@@ -77,7 +77,7 @@ init_world :: proc() {
 
 update_world :: proc() {
 	view = camera_view()
-	proj = la.matrix4_perspective_f32(fov, win_ratio(), 0.01, 600.0)
+	proj = la.matrix4_perspective_f32(fov, win_ratio(), 0.01, 6e2)
 
 	//update once
 	use_shader_program(program)

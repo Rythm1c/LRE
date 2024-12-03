@@ -17,7 +17,6 @@ render_model :: proc(model: ^Model) {
 
 	}
 
-
 }
 
 destroy_model :: proc(model: ^Model) {
@@ -94,38 +93,40 @@ extract_gltf_meshes :: proc(data: ^cgltf.data) -> (meshes: [dynamic]Mesh) {
 				values: [dynamic]f32
 				get_scalar_values(&values, compCount, attrAccessor)
 
+				if (values != nil) {
 
-				#partial switch _attribute.type 
-				{
-				//get texture coordinates if any 
-				case .texcoord:
-					for i: u32 = 0; i < u32(attrAccessor.count); i += 1 {
-						index := i * compCount
-						append(&uvs, [2]f32{values[index + 0], values[index + 1]})
+					#partial switch _attribute.type 
+					{
+					//get texture coordinates if any 
+					case .texcoord:
+						for i: u32 = 0; i < u32(attrAccessor.count); i += 1 {
+							index := i * compCount
+							append(&uvs, [2]f32{values[index + 0], values[index + 1]})
+						}
+
+
+					//get position coordinates 
+					case .position:
+						for i: u32 = 0; i < u32(attrAccessor.count); i += 1 {
+							index := i * compCount
+							append(
+								&positions,
+								[3]f32{values[index + 0], values[index + 1], values[index + 2]},
+							)
+						}
+
+
+					//get normal coordinates 
+					case .normal:
+						for i: u32 = 0; i < u32(attrAccessor.count); i += 1 {
+							index := i * compCount
+							append(
+								&normals,
+								[3]f32{values[index + 0], values[index + 1], values[index + 2]},
+							)
+						}
+
 					}
-
-
-				//get position coordinates 
-				case .position:
-					for i: u32 = 0; i < u32(attrAccessor.count); i += 1 {
-						index := i * compCount
-						append(
-							&positions,
-							[3]f32{values[index + 0], values[index + 1], values[index + 2]},
-						)
-					}
-
-
-				//get normal coordinates 
-				case .normal:
-					for i: u32 = 0; i < u32(attrAccessor.count); i += 1 {
-						index := i * compCount
-						append(
-							&normals,
-							[3]f32{values[index + 0], values[index + 1], values[index + 2]},
-						)
-					}
-
 
 				}
 
@@ -180,6 +181,9 @@ extract_gltf_meshes :: proc(data: ^cgltf.data) -> (meshes: [dynamic]Mesh) {
 
 	return
 }
+
+// NOTE: finish this function
+extract_gltf_animations :: proc(data: ^cgltf.data) {}
 
 @(private = "file")
 get_scalar_values :: proc(out: ^[dynamic]f32, compCount: u32, accessor: ^cgltf.accessor) {
