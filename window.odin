@@ -10,7 +10,7 @@ running := true
 win: ^sdl2.Window
 gl_context: sdl2.GLContext
 
-width, height: u32 = 800, 600
+width, height: u32 = 600, 450
 
 
 win_ratio :: proc() -> f32 {return f32(width) / f32(height)}

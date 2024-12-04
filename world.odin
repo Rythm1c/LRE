@@ -9,8 +9,8 @@ shapes: map[string]Shape
 
 // 3D gltf models
 textureId: u32
-textureSrc: string = "models/astronaut/textures/m_main_baseColor.png"
-astronautSrc: cstring = "models/astronaut/scene.gltf"
+textureSrc: string = "models/astronaut2/textures/material_0_diffuse.png"
+astronautSrc: cstring = "models/astronaut2/scene.gltf"
 astronaut: Model
 
 
@@ -68,10 +68,11 @@ init_world :: proc() {
 
 	astronautData := extract_gltf_data(astronautSrc)
 	defer destroy_gltf_data(astronautData)
+	clips := extract_gltf_animations(astronautData)
 	astronaut.meshes = extract_gltf_meshes(astronautData)
 	astronaut.color = {1.0, 1.0, 1.0}
 	astronaut.position = {1.0, 4.0, 7.0}
-	astronaut.scaling = {0.1, 0.1, 0.1}
+	astronaut.scaling = {0.025, 0.025, 0.025}
 	astronaut.rotation = la.quaternion_angle_axis_f32(la.to_radians(f32(180)), {0.0, 1.0, 0.0})
 	textureId = texture_from_file(textureSrc)
 
@@ -95,8 +96,6 @@ render_world :: proc() {
 
 	use_shader_program(program)
 	//update per object
-
-
 	for k, &v in shapes {
 
 		model = transform_to_mat(v.transform)

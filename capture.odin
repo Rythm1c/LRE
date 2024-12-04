@@ -2,7 +2,7 @@ package lre
 
 import "core:fmt"
 import "core:image"
-/* import "core:image/png" */
+import "core:image/png" // the fucking png writer doesnt fucking work for some god forsaken reason
 import "core:image/tga"
 import os "core:os/os2"
 import "core:strings"
@@ -99,6 +99,5 @@ screen_shot :: proc(destination: string, w, h: u32) {
 		fmt.printfln("failed to capture a screen shot!")
 
 	}
-
 
 }

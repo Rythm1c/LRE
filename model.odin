@@ -2,6 +2,7 @@ package lre
 
 import "core:fmt"
 import la "core:math/linalg"
+import "core:strings"
 import "vendor:cgltf"
 
 Model :: struct {
@@ -187,7 +188,6 @@ extract_gltf_meshes :: proc(data: ^cgltf.data) -> (meshes: [dynamic]Mesh) {
 // get the models rest pose
 extract_gltf_skeleton :: proc(data: ^cgltf.data) -> (joints: [dynamic]Transform) {
 
-
 	resize(&joints, len(data.nodes))
 
 	for &_node, index in data.nodes {
@@ -218,15 +218,33 @@ extract_gltf_skeleton :: proc(data: ^cgltf.data) -> (joints: [dynamic]Transform)
 
 // NOTE: finish this function
 // under construction 
-extract_gltf_animations :: proc(data: ^cgltf.data) {
+extract_gltf_animations :: proc(data: ^cgltf.data) -> (clips: [dynamic]Clip) {
 
 	for &_animation in data.animations {
 
+		clip: Clip
+
 		for &_channel in _animation.channels {
+
+			sampler := _channel.sampler
+
+			if (sampler.interpolation != .linear) {
+				fmt.printfln("non linear interpolation!")
+			}
+
+			keyframes: [dynamic]f32
+			get_scalar_values(&keyframes, 1, sampler.input)
+
+			track: JointTrack
+			track.target = u32(get_node_id(data, _channel.target_node.name))
+
+			fmt.printfln("{}", track.target)
 
 
 		}
 	}
+
+	return
 }
 
 @(private = "file")
@@ -240,4 +258,18 @@ get_scalar_values :: proc(out: ^[dynamic]f32, compCount: u32, accessor: ^cgltf.a
 
 
 	}
+}
+
+get_node_id :: proc(data: ^cgltf.data, name: cstring) -> i32 {
+
+	for &_node, index in data.nodes {
+		if (_node.name == name) {
+
+			return i32(index)
+
+		}
+	}
+	fmt.printfln("failed to find the node id")
+
+	return -1
 }
