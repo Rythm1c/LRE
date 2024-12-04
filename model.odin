@@ -54,127 +54,17 @@ destroy_gltf_data :: proc(data: ^cgltf.data) {defer cgltf.free(data)}
 
 extract_gltf_meshes :: proc(data: ^cgltf.data) -> (meshes: [dynamic]Mesh) {
 
-
 	for &_mesh in data.meshes {
-
 
 		primitives := _mesh.primitives
 		for &_primitive in primitives {
+
 			if (_primitive.attributes == nil) {
 				continue
 			}
 
-			mesh: Mesh
+			append(&meshes, mesh_from_primitive(&_primitive))
 
-			positions: [dynamic][3]f32
-			normals: [dynamic][3]f32
-			uvs: [dynamic][2]f32
-
-
-			//first extract the vertex data(attributes) individually
-			for &_attribute in _primitive.attributes {
-
-				attrAccessor := _attribute.data
-				compCount: u32 = 0
-
-				#partial switch attrAccessor.type {
-
-				case .vec2:
-					compCount = 2
-
-
-				case .vec3:
-					compCount = 3
-
-
-				case .vec4:
-					compCount = 4
-				}
-
-
-				values: [dynamic]f32
-				get_scalar_values(&values, compCount, attrAccessor)
-
-				if (values != nil) {
-
-					#partial switch _attribute.type 
-					{
-					//get texture coordinates if any 
-					case .texcoord:
-						for i: u32 = 0; i < u32(attrAccessor.count); i += 1 {
-							index := i * compCount
-							append(&uvs, [2]f32{values[index + 0], values[index + 1]})
-						}
-
-
-					//get position coordinates 
-					case .position:
-						for i: u32 = 0; i < u32(attrAccessor.count); i += 1 {
-							index := i * compCount
-							append(
-								&positions,
-								[3]f32{values[index + 0], values[index + 1], values[index + 2]},
-							)
-						}
-
-
-					//get normal coordinates 
-					case .normal:
-						for i: u32 = 0; i < u32(attrAccessor.count); i += 1 {
-							index := i * compCount
-							append(
-								&normals,
-								[3]f32{values[index + 0], values[index + 1], values[index + 2]},
-							)
-						}
-
-					}
-
-				}
-
-
-			}
-
-			posCount := len(positions)
-
-			resize(&mesh.vertices, posCount)
-
-			for i: u32 = 0; i < u32(posCount); i += 1 {
-
-				vert: Vertex
-
-				vert.pos = positions[i]
-
-				vert.norm = normals[i]
-
-				vert.uv = [2]f32{0.0, 0.0}
-				if (i < u32(len(uvs))) {
-
-					vert.uv = uvs[i]
-
-				}
-
-				mesh.vertices[i] = vert
-
-			}
-
-			// check whether the mesh contains indices or not 
-			// if not do nathing 
-			indexCount := _primitive.indices.count
-
-			if (indexCount != 0) {
-
-				resize_dynamic_array(&mesh.indices, indexCount)
-				for i: u32 = 0; i < u32(indexCount); i += 1 {
-
-					mesh.indices[i] = u32(cgltf.accessor_read_index(_primitive.indices, uint(i)))
-
-				}
-			}
-
-			//add mesh to dynamic array
-			init_mesh(&mesh)
-			append(&meshes, mesh)
 
 		}
 
@@ -186,9 +76,10 @@ extract_gltf_meshes :: proc(data: ^cgltf.data) -> (meshes: [dynamic]Mesh) {
 
 // NOTE: finish this function
 // get the models rest pose
-extract_gltf_skeleton :: proc(data: ^cgltf.data) -> (joints: [dynamic]Transform) {
+extract_gltf_skeleton :: proc(data: ^cgltf.data) -> (skeleton: Skeleton) {
 
-	resize(&joints, len(data.nodes))
+	resize(&skeleton.joints, len(data.nodes))
+	resize(&skeleton.jointNames, len(data.nodes))
 
 	for &_node, index in data.nodes {
 		transform: Transform
@@ -210,7 +101,14 @@ extract_gltf_skeleton :: proc(data: ^cgltf.data) -> (joints: [dynamic]Transform)
 			transform.scaling = {1, 1, 1}
 		}
 
-		joints[index] = transform
+
+		skeleton.jointNames[index] = string(_node.name)
+		skeleton.joints[index] = transform
+
+		for &child in _node.children {
+
+			skeleton.parents[get_node_id(data, child.name)] = u32(index)
+		}
 	}
 
 	return
@@ -232,13 +130,18 @@ extract_gltf_animations :: proc(data: ^cgltf.data) -> (clips: [dynamic]Clip) {
 				fmt.printfln("non linear interpolation!")
 			}
 
-			keyframes: [dynamic]f32
+
+			keyframes, values: [dynamic]f32
 			get_scalar_values(&keyframes, 1, sampler.input)
+
+			if _channel.target_path == .translation {
+				get_scalar_values(&values, 3, sampler.output)
+			}
 
 			track: JointTrack
 			track.target = u32(get_node_id(data, _channel.target_node.name))
 
-			fmt.printfln("{}", track.target)
+			//fmt.printfln("{}", _channel.target_node.name)
 
 
 		}
@@ -260,6 +163,7 @@ get_scalar_values :: proc(out: ^[dynamic]f32, compCount: u32, accessor: ^cgltf.a
 	}
 }
 
+@(private = "file")
 get_node_id :: proc(data: ^cgltf.data, name: cstring) -> i32 {
 
 	for &_node, index in data.nodes {
@@ -272,4 +176,115 @@ get_node_id :: proc(data: ^cgltf.data, name: cstring) -> i32 {
 	fmt.printfln("failed to find the node id")
 
 	return -1
+}
+
+@(private = "file")
+mesh_from_primitive :: proc(_primitive: ^cgltf.primitive) -> (mesh: Mesh) {
+
+	positions: [dynamic][3]f32
+	normals: [dynamic][3]f32
+	uvs: [dynamic][2]f32
+
+
+	//first extract the vertex data(attributes) individually
+	for &_attribute in _primitive.attributes {
+
+		attrAccessor := _attribute.data
+		compCount: u32 = 0
+
+		#partial switch attrAccessor.type {
+
+		case .vec2:
+			compCount = 2
+
+
+		case .vec3:
+			compCount = 3
+
+
+		case .vec4:
+			compCount = 4
+		}
+
+
+		values: [dynamic]f32
+		get_scalar_values(&values, compCount, attrAccessor)
+
+		if (values != nil) {
+			for i: u32 = 0; i < u32(attrAccessor.count); i += 1 {
+				index := i * compCount
+
+				#partial switch _attribute.type 
+				{
+
+				//get texture coordinates if any 
+				case .texcoord:
+					append(&uvs, [2]f32{values[index + 0], values[index + 1]})
+
+
+				//get position coordinates 
+				case .position:
+					append(
+						&positions,
+						[3]f32{values[index + 0], values[index + 1], values[index + 2]},
+					)
+
+
+				//get normal coordinates 
+				case .normal:
+					append(
+						&normals,
+						[3]f32{values[index + 0], values[index + 1], values[index + 2]},
+					)
+
+
+				}
+			}
+
+		}
+
+
+	}
+
+	posCount := len(positions)
+
+	resize(&mesh.vertices, posCount)
+
+	for i: u32 = 0; i < u32(posCount); i += 1 {
+
+		vert: Vertex
+
+		vert.pos = positions[i]
+
+		vert.norm = normals[i]
+
+		vert.uv = [2]f32{0.0, 0.0}
+		if (i < u32(len(uvs))) {
+
+			vert.uv = uvs[i]
+
+		}
+
+		mesh.vertices[i] = vert
+
+	}
+
+	// check whether the mesh contains indices or not 
+	// if not do nathing 
+	indexCount := _primitive.indices.count
+
+	if (indexCount != 0) {
+
+		resize_dynamic_array(&mesh.indices, indexCount)
+		for i: u32 = 0; i < u32(indexCount); i += 1 {
+
+			mesh.indices[i] = u32(cgltf.accessor_read_index(_primitive.indices, uint(i)))
+
+		}
+	}
+
+	//add mesh to dynamic array
+	init_mesh(&mesh)
+
+	return
 }
