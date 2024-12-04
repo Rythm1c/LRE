@@ -34,7 +34,7 @@ void main() {
 
     }
 
-    vec3 ambient = vec3(0.15) * finalColor;
+    vec3 ambient = 0.15 * finalColor;
     result += ambient;
 
     vec3 norm = normalize(fsIn.norm);
@@ -51,7 +51,7 @@ float grid(int nLines, vec2 uv) {
     float x = fract(uv.x / pos);
     float y = fract(uv.y / pos);
 
-    vec2 e = vec2(0.01); // edge
+    vec2 e = vec2(0.005); // edge
     vec2 step1 = step(e, vec2(x, y));
     vec2 step2 = step(e, 1.0 - vec2(x, y));
 

@@ -82,7 +82,6 @@ save_screen_recording :: proc(destination: string, c: ^Capture) {
 		context.allocator,
 	) */
 
-
 }
 
 // capture a screenshot and save it into a png file with desired name

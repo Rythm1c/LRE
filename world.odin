@@ -37,9 +37,11 @@ init_world :: proc() {
 	platform: Shape
 
 	platform.mesh = Cube()
-	platform.color = {0.2, 0.9, 0.8}
+	platform.color = {1, 1, 1}
 	platform.position = {0, -1, 0}
 	platform.scaling = {1e2, 1, 1e2}
+	platform.gridCount = 30
+	platform.enableGrid = 1
 	//platform.transform.rotation = quaternion(w = 1, x = 0, y = 0, z = 0)
 	shapes["platform"] = platform
 
@@ -54,14 +56,14 @@ init_world :: proc() {
 	torus.color = {0.1, 0.9, 0.7}
 	torus.position = {-6.0, 3.0, 13.0}
 	torus.scaling = {3.0, 3.0, 3.0}
-	torus.rotation = quaternion(w = 1, x = 0, y = 0, z = 0)
+	//torus.rotation = quaternion(w = 1, x = 0, y = 0, z = 0)
 	shapes["torus"] = torus
 
 	sphere.mesh = Sphere(60, 60)
 	sphere.color = {0.1, 0.4, 0.7}
 	sphere.position = {5.0, 4.0, 15.0}
 	sphere.scaling = {2.0, 2.0, 2.0}
-	sphere.rotation = quaternion(w = 1, x = 0, y = 0, z = 0)
+	//sphere.rotation = quaternion(w = 1, x = 0, y = 0, z = 0)
 	shapes["sphere"] = sphere
 
 	astronautData := extract_gltf_data(astronautSrc)
@@ -69,7 +71,7 @@ init_world :: proc() {
 	astronaut.meshes = extract_gltf_meshes(astronautData)
 	astronaut.color = {1.0, 1.0, 1.0}
 	astronaut.position = {1.0, 4.0, 7.0}
-	astronaut.scaling = {0.2, 0.2, 0.2}
+	astronaut.scaling = {0.1, 0.1, 0.1}
 	astronaut.rotation = la.quaternion_angle_axis_f32(la.to_radians(f32(180)), {0.0, 1.0, 0.0})
 	textureId = texture_from_file(textureSrc)
 
@@ -86,7 +88,7 @@ update_world :: proc() {
 	use_shader_program(program)
 	update_uniform_mat4(program, "view", &view)
 	update_uniform_mat4(program, "proj", &proj)
-	update_uniform_vec3(program, "lDir", {-0.2, -0.3, 0.9})
+	update_uniform_vec3(program, "lDir", {-0.2, -0.6, 0.6})
 }
 
 render_world :: proc() {

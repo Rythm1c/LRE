@@ -1,6 +1,7 @@
 package lre
 
 import "core:fmt"
+import la "core:math/linalg"
 import "vendor:cgltf"
 
 Model :: struct {
@@ -183,7 +184,50 @@ extract_gltf_meshes :: proc(data: ^cgltf.data) -> (meshes: [dynamic]Mesh) {
 }
 
 // NOTE: finish this function
-extract_gltf_animations :: proc(data: ^cgltf.data) {}
+// get the models rest pose
+extract_gltf_skeleton :: proc(data: ^cgltf.data) -> (joints: [dynamic]Transform) {
+
+
+	resize(&joints, len(data.nodes))
+
+	for &_node, index in data.nodes {
+		transform: Transform
+
+
+		if (_node.has_translation) {
+
+			transform.position = _node.translation
+		}
+
+		if (_node.has_rotation) {
+			v: [4]f32 = _node.rotation
+			transform.rotation = quaternion(w = v[3], x = v[0], y = v[1], z = v[2])
+		}
+
+		if (_node.has_scale) {
+			transform.scaling = _node.scale
+		} else {
+			transform.scaling = {1, 1, 1}
+		}
+
+		joints[index] = transform
+	}
+
+	return
+}
+
+// NOTE: finish this function
+// under construction 
+extract_gltf_animations :: proc(data: ^cgltf.data) {
+
+	for &_animation in data.animations {
+
+		for &_channel in _animation.channels {
+
+
+		}
+	}
+}
 
 @(private = "file")
 get_scalar_values :: proc(out: ^[dynamic]f32, compCount: u32, accessor: ^cgltf.accessor) {
