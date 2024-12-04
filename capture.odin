@@ -2,7 +2,7 @@ package lre
 
 import "core:fmt"
 import "core:image"
-import "core:image/png"
+/* import "core:image/png" */
 import "core:image/tga"
 import os "core:os/os2"
 import "core:strings"
@@ -20,15 +20,13 @@ Capture :: struct {
 @(private = "file")
 capture_frame :: proc(w, h: u32) -> (frame: pixels) {
 
-	size: u32 = w * h
-	resize(&frame, size)
+	resize(&frame, w * h)
 
 
 	gl.PixelStorei(gl.PACK_ALIGNMENT, 1)
 	gl.ReadPixels(0, 0, i32(w), i32(h), gl.RGB, gl.UNSIGNED_BYTE, raw_data(frame))
 
 	return
-
 
 }
 
@@ -53,7 +51,7 @@ save_screen_recording :: proc(destination: string, c: ^Capture) {
 
 			file := [?]string {
 				tmp_dir, // temporary directory ("/tmp" in linux)
-				fmt.aprintf("/frame_{:v}.png", index), //
+				fmt.aprintf("/frame_{}.tga", index),
 			}
 
 			location := strings.concatenate(file[:])
@@ -70,23 +68,20 @@ save_screen_recording :: proc(destination: string, c: ^Capture) {
 
 	fmt.eprintfln("\ndone processing frames")
 
-	/* video_frames := [?]string{tmp_dir, "/frame_%d.png"}
+	video_frames := [?]string{tmp_dir, "/frame_%d.tga"}
 
 	ffmpeg_cmd := [?]string {
-		"ffmpeg ",
-		"60 ",
-		"-i ",
+		"ffmpeg framerate 60 -i ",
 		strings.concatenate(video_frames[:]),
-		" -c:v ",
-		"libx264 ",
-		"-r ",
-		"60 ",
-		"-vf ",
-		"vflip ",
+		" -c:v libx264 -r 60 -vf vflip -pix_fmt yuv420p ",
 		destination,
 	}
 
-	os.process_exec({command = strings.concatenate(ffmpeg_cmd[:])}) */
+	/* os.process_exec(
+		{command = strings.concatenate(ffmpeg_cmd[:])},
+		context.allocator,
+	) */
+
 
 }
 

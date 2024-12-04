@@ -5,13 +5,16 @@ import "core:time"
 import gl "vendor:OpenGL"
 import "vendor:sdl2"
 
-// TODO: window resizing - finished 
-// impliment screen capture system
-// impliment skeletal animations
-// impliment abit of physics to give everything life
-// impliment a better material handling system
-// impliment a GUI(maybe)
-// impliment text rendering(maybe)
+/*
+ TODO: window resizing - finished 
+ impliment screen capture system - semi finished
+ impliment skeletal animations and simple animations
+ impliment abit of physics to give everything life
+ impliment a better material handling system
+ add more interesting structures other than just sphere and tori
+ impliment a GUI(maybe)
+ impliment text rendering(maybe) 
+ */
 
 main :: proc() {
 
@@ -41,8 +44,8 @@ main :: proc() {
 		render_world()
 
 
-		//screen_shot("test.png", width, height)
-		screen_record(&capture)
+		//screen_shot("test.tga", width, height)
+		//screen_record(&capture)
 
 		swap_window()
 
@@ -55,7 +58,7 @@ main :: proc() {
 
 	}
 
-	save_screen_recording("test.mp4", &capture)
+	//save_screen_recording("test.mp4", &capture)
 
 	fmt.printfln("done")
 

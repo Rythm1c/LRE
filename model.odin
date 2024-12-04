@@ -4,9 +4,9 @@ import "core:fmt"
 import "vendor:cgltf"
 
 Model :: struct {
-	meshes:    [dynamic]Mesh,
-	transform: Transform,
-	color:     [3]f32,
+	meshes:          [dynamic]Mesh,
+	color:           [3]f32,
+	using transform: Transform,
 }
 
 render_model :: proc(model: ^Model) {
@@ -192,12 +192,7 @@ get_scalar_values :: proc(out: ^[dynamic]f32, compCount: u32, accessor: ^cgltf.a
 
 	for i: u32 = 0; i < u32(accessor.count); i += 1 {
 
-		_ = cgltf.accessor_read_float(
-			accessor, //
-			uint(i), //
-			&out[i * compCount], //
-			uint(compCount),
-		)
+		_ = cgltf.accessor_read_float(accessor, uint(i), &out[i * compCount], uint(compCount))
 
 
 	}

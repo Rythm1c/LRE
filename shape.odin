@@ -1,10 +1,16 @@
 package lre
 
 
+Material :: struct {
+	gridCount:  i32,
+	enableGrid: i32,
+}
+
 Shape :: struct {
-	mesh:      Mesh,
-	color:     [3]f32,
-	transform: Transform,
+	mesh:            Mesh,
+	color:           [3]f32,
+	using transform: Transform,
+	using material:  Material,
 }
 
 render_shape :: proc(shape: ^Shape) {

@@ -13,6 +13,8 @@ out vec4 color;
 uniform bool textured;
 uniform sampler2D tex;
 
+uniform bool enableGrid;
+uniform int gridCount;
 float grid(int nLines, vec2 uv);
 
 void main() {
@@ -23,6 +25,13 @@ void main() {
         finalColor = vec3(texture(tex, fsIn.uv));
     } else {
         finalColor = inCol;
+    }
+
+    if(enableGrid) {
+        if(grid(gridCount, fsIn.uv) == 0.0) {
+            finalColor *= 0.15;
+        }
+
     }
 
     vec3 ambient = vec3(0.15) * finalColor;
@@ -42,7 +51,7 @@ float grid(int nLines, vec2 uv) {
     float x = fract(uv.x / pos);
     float y = fract(uv.y / pos);
 
-    vec2 e = vec2(0.005); // edge
+    vec2 e = vec2(0.01); // edge
     vec2 step1 = step(e, vec2(x, y));
     vec2 step2 = step(e, 1.0 - vec2(x, y));
 
