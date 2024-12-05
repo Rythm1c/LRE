@@ -76,6 +76,10 @@ init_world :: proc() {
 	astronaut.rotation = la.quaternion_angle_axis_f32(la.to_radians(f32(180)), {0.0, 1.0, 0.0})
 	textureId = texture_from_file(textureSrc)
 
+	for &clip in clips {
+		debug_clip_info(&clip)
+	}
+
 	camera.pos = {0.0, 7.0, -3.0}
 
 

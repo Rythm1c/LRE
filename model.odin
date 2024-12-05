@@ -30,6 +30,7 @@ destroy_model :: proc(model: ^Model) {
 	}
 }
 
+destroy_gltf_data :: proc(data: ^cgltf.data) {defer cgltf.free(data)}
 extract_gltf_data :: proc(path: cstring) -> ^cgltf.data {
 
 	options: cgltf.options
@@ -50,18 +51,16 @@ extract_gltf_data :: proc(path: cstring) -> ^cgltf.data {
 	return data
 }
 
-destroy_gltf_data :: proc(data: ^cgltf.data) {defer cgltf.free(data)}
 
 extract_gltf_meshes :: proc(data: ^cgltf.data) -> (meshes: [dynamic]Mesh) {
 
 	for &_mesh in data.meshes {
 
 		primitives := _mesh.primitives
+
 		for &_primitive in primitives {
 
-			if (_primitive.attributes == nil) {
-				continue
-			}
+			if (_primitive.attributes == nil) {continue}
 
 			append(&meshes, mesh_from_primitive(&_primitive))
 
@@ -121,35 +120,95 @@ extract_gltf_animations :: proc(data: ^cgltf.data) -> (clips: [dynamic]Clip) {
 	for &_animation in data.animations {
 
 		clip: Clip
+		// resize and set node names and indexes
+		resize(&clip.tracks, len(data.nodes))
+		for &_node, index in data.nodes {
+			clip.tracks[index].targetName = string(_node.name)
+		}
 
 		for &_channel in _animation.channels {
+
+			track: JointTrack
 
 			sampler := _channel.sampler
 
 			if (sampler.interpolation != .linear) {
 				fmt.printfln("non linear interpolation!")
+				return
 			}
 
+			targetId := u32(get_node_id(data, _channel.target_node.name))
+
+			//clip.tracks[targetId].targetId = targetId
+			//clip.tracks[targetId].targetName = string(_channel.target_node.name)
 
 			keyframes, values: [dynamic]f32
 			get_scalar_values(&keyframes, 1, sampler.input)
 
+			//compCount := 0
 			if _channel.target_path == .translation {
 				get_scalar_values(&values, 3, sampler.output)
+
+				//resize(&clip.tracks[targetId].translations, sampler.output.count)
+				for i: u32 = 0; i < u32(sampler.output.count); i += 1 {
+
+					index := 3 * i
+					traslations := &clip.tracks[targetId].translations
+					translation := [3]f32{values[index + 0], values[index + 1], values[index + 2]}
+					append(traslations, translation)
+
+				}
+
 			}
 
-			track: JointTrack
-			track.target = u32(get_node_id(data, _channel.target_node.name))
+			if _channel.target_path == .rotation {
+				get_scalar_values(&values, 4, sampler.output)
+
+				//resize(&clip.tracks[targetId].rotations, sampler.output.count)
+				for i: u32 = 0; i < u32(sampler.output.count); i += 1 {
+
+					index := 4 * i
+					rotations := &clip.tracks[targetId].rotations
+					orientation := quaternion(
+						w = values[index + 3],
+						x = values[index + 0],
+						y = values[index + 1],
+						z = values[index + 2],
+					)
+					append(rotations, orientation)
+
+				}
+
+			}
+
+			if _channel.target_path == .scale {
+				get_scalar_values(&values, 3, sampler.output)
+
+				//resize(&clip.tracks[targetId].scalings, sampler.output.count)
+				for i: u32 = 0; i < u32(sampler.output.count); i += 1 {
+
+					index := 3 * i
+					scalings := &clip.tracks[targetId].scalings
+					scaling := [3]f32{values[index + 0], values[index + 1], values[index + 2]}
+					append(scalings, scaling)
+
+				}
+
+			}
+
 
 			//fmt.printfln("{}", _channel.target_node.name)
 
 
 		}
+
+		append(&clips, clip)
 	}
 
 	return
 }
 
+//helpers
 @(private = "file")
 get_scalar_values :: proc(out: ^[dynamic]f32, compCount: u32, accessor: ^cgltf.accessor) {
 
@@ -210,37 +269,30 @@ mesh_from_primitive :: proc(_primitive: ^cgltf.primitive) -> (mesh: Mesh) {
 		values: [dynamic]f32
 		get_scalar_values(&values, compCount, attrAccessor)
 
-		if (values != nil) {
-			for i: u32 = 0; i < u32(attrAccessor.count); i += 1 {
-				index := i * compCount
+		if (values == nil) {continue}
 
-				#partial switch _attribute.type 
-				{
+		for i: u32 = 0; i < u32(attrAccessor.count); i += 1 {
+			index := i * compCount
 
-				//get texture coordinates if any 
-				case .texcoord:
-					append(&uvs, [2]f32{values[index + 0], values[index + 1]})
+			#partial switch _attribute.type 
+			{
 
-
-				//get position coordinates 
-				case .position:
-					append(
-						&positions,
-						[3]f32{values[index + 0], values[index + 1], values[index + 2]},
-					)
+			//get texture coordinates if any 
+			case .texcoord:
+				append(&uvs, [2]f32{values[index + 0], values[index + 1]})
 
 
-				//get normal coordinates 
-				case .normal:
-					append(
-						&normals,
-						[3]f32{values[index + 0], values[index + 1], values[index + 2]},
-					)
+			//get position coordinates 
+			case .position:
+				append(&positions, [3]f32{values[index + 0], values[index + 1], values[index + 2]})
 
 
-				}
+			//get normal coordinates 
+			case .normal:
+				append(&normals, [3]f32{values[index + 0], values[index + 1], values[index + 2]})
+
+
 			}
-
 		}
 
 
