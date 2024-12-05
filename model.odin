@@ -135,84 +135,9 @@ extract_gltf_animations :: proc(data: ^cgltf.data) -> (clips: [dynamic]Clip) {
 
 		for &_channel in _animation.channels {
 
-			track: JointTrack
-
-			sampler := _channel.sampler
-
-			if (sampler.interpolation != .linear) {
-				fmt.printfln("non linear interpolation!")
-				return
-			}
-
 			targetId := u32(get_node_id(data, _channel.target_node.name))
 
-			//clip.tracks[targetId].targetId = targetId
-			//clip.tracks[targetId].targetName = string(_channel.target_node.name)
-
-			keyframes, values: [dynamic]f32
-			get_scalar_values(&keyframes, 1, sampler.input)
-
-			//compCount := 0
-			if _channel.target_path == .translation {
-				get_scalar_values(&values, 3, sampler.output)
-
-				//resize(&clip.tracks[targetId].translations, sampler.output.count)
-				for i: u32 = 0; i < u32(sampler.output.count); i += 1 {
-
-					index := 3 * i
-
-					clip.tracks[targetId].translations.times = keyframes
-					traslations := &clip.tracks[targetId].translations.frames
-					translation := [3]f32{values[index + 0], values[index + 1], values[index + 2]}
-					append(traslations, translation)
-
-				}
-
-			}
-
-			if _channel.target_path == .rotation {
-				get_scalar_values(&values, 4, sampler.output)
-
-				//resize(&clip.tracks[targetId].rotations, sampler.output.count)
-				for i: u32 = 0; i < u32(sampler.output.count); i += 1 {
-
-					index := 4 * i
-
-					clip.tracks[targetId].rotations.times = keyframes
-					rotations := &clip.tracks[targetId].rotations.frames
-					orientation := quaternion(
-						w = values[index + 3],
-						x = values[index + 0],
-						y = values[index + 1],
-						z = values[index + 2],
-					)
-					append(rotations, orientation)
-
-				}
-
-			}
-
-			if _channel.target_path == .scale {
-				get_scalar_values(&values, 3, sampler.output)
-
-				//resize(&clip.tracks[targetId].scalings, sampler.output.count)
-				for i: u32 = 0; i < u32(sampler.output.count); i += 1 {
-
-					index := 3 * i
-
-					clip.tracks[targetId].scalings.times = keyframes
-					scalings := &clip.tracks[targetId].scalings.frames
-					scaling := [3]f32{values[index + 0], values[index + 1], values[index + 2]}
-					append(scalings, scaling)
-
-				}
-
-			}
-
-
-			//fmt.printfln("{}", _channel.target_node.name)
-
-
+			proccess_channel(&_channel, targetId, &clip)
 		}
 
 		append(&clips, clip)
@@ -363,4 +288,86 @@ mesh_from_primitive :: proc(_primitive: ^cgltf.primitive) -> (mesh: Mesh) {
 	init_mesh(&mesh)
 
 	return
+}
+
+@(private = "file")
+proccess_channel :: proc(_channel: ^cgltf.animation_channel, targetId: u32, clip: ^Clip) {
+
+	track: JointTrack
+
+	sampler := _channel.sampler
+
+	if (sampler.interpolation != .linear) {
+		fmt.printfln("non linear interpolation!")
+		return
+	}
+
+
+	//clip.tracks[targetId].targetId = targetId
+	//clip.tracks[targetId].targetName = string(_channel.target_node.name)
+
+	keyframes, values: [dynamic]f32
+	get_scalar_values(&keyframes, 1, sampler.input)
+
+	//compCount := 0
+	if _channel.target_path == .translation {
+		get_scalar_values(&values, 3, sampler.output)
+
+		//resize(&clip.tracks[targetId].translations, sampler.output.count)
+		for i: u32 = 0; i < u32(sampler.output.count); i += 1 {
+
+			index := 3 * i
+
+			clip.tracks[targetId].translations.times = keyframes
+			traslations := &clip.tracks[targetId].translations.frames
+			translation := [3]f32{values[index + 0], values[index + 1], values[index + 2]}
+			append(traslations, translation)
+
+		}
+
+	}
+
+	if _channel.target_path == .rotation {
+		get_scalar_values(&values, 4, sampler.output)
+
+		//resize(&clip.tracks[targetId].rotations, sampler.output.count)
+		for i: u32 = 0; i < u32(sampler.output.count); i += 1 {
+
+			index := 4 * i
+
+			clip.tracks[targetId].rotations.times = keyframes
+			rotations := &clip.tracks[targetId].rotations.frames
+			orientation := quaternion(
+				w = values[index + 3],
+				x = values[index + 0],
+				y = values[index + 1],
+				z = values[index + 2],
+			)
+			append(rotations, orientation)
+
+		}
+
+	}
+
+	if _channel.target_path == .scale {
+		get_scalar_values(&values, 3, sampler.output)
+
+		//resize(&clip.tracks[targetId].scalings, sampler.output.count)
+		for i: u32 = 0; i < u32(sampler.output.count); i += 1 {
+
+			index := 3 * i
+
+			clip.tracks[targetId].scalings.times = keyframes
+			scalings := &clip.tracks[targetId].scalings.frames
+			scaling := [3]f32{values[index + 0], values[index + 1], values[index + 2]}
+			append(scalings, scaling)
+
+		}
+
+	}
+
+
+	//fmt.printfln("{}", _channel.target_node.name)
+
+
 }
