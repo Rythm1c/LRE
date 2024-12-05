@@ -3,7 +3,6 @@ package lre
 import la "core:math/linalg"
 import gl "vendor:OpenGL"
 
-program: u32
 
 shapes: map[string]Shape
 
@@ -22,6 +21,7 @@ fov := la.to_radians(f32(45.0))
 //shader sources/locations
 fs_src: string = "shaders/shader.frag"
 vs_src: string = "shaders/shader.vert"
+program: u32
 
 init_world :: proc() {
 
@@ -69,6 +69,7 @@ init_world :: proc() {
 	astronautData := extract_gltf_data(astronautSrc)
 	defer destroy_gltf_data(astronautData)
 	clips := extract_gltf_animations(astronautData)
+	skeleton := extract_gltf_skeleton(astronautData)
 	astronaut.meshes = extract_gltf_meshes(astronautData)
 	astronaut.color = {1.0, 1.0, 1.0}
 	astronaut.position = {1.0, 4.0, 7.0}
@@ -76,9 +77,12 @@ init_world :: proc() {
 	astronaut.rotation = la.quaternion_angle_axis_f32(la.to_radians(f32(180)), {0.0, 1.0, 0.0})
 	textureId = texture_from_file(textureSrc)
 
+	debug_skeleton(&skeleton)
+	/* 
 	for &clip in clips {
 		debug_clip_info(&clip)
 	}
+	*/
 
 	camera.pos = {0.0, 7.0, -3.0}
 

@@ -1,16 +1,25 @@
 package lre
 
-import "core:fmt"
+Vec3Track :: struct {
+	times:  [dynamic]f32,
+	frames: [dynamic][3]f32,
+}
+
+QuatTrack :: struct {
+	times:  [dynamic]f32,
+	frames: [dynamic]quaternion128,
+}
 
 JointTrack :: struct {
 	//arranged in parllel to skeleton bones
-	//targetId:     u32,
-	targetName:   string,
-	translations: [dynamic][3]f32,
-	rotations:    [dynamic]quaternion128,
-	scalings:     [dynamic][3]f32,
+	//in clip array 
+	targetName:    string,
+	start, finish: f32,
+	translations:  Vec3Track,
+	rotations:     QuatTrack,
+	scalings:      Vec3Track,
 }
-
+//tracks are arranged in parallel to skeleton joints to match target joint's index
 Clip :: struct {
 	name:          string,
 	start, finish: f32,
@@ -20,21 +29,4 @@ Clip :: struct {
 
 set_duartion :: proc(clip: ^Clip) {
 
-}
-
-debug_clip_info :: proc(clip: ^Clip) {
-
-	using fmt
-	printfln("animation name: {}", clip.name)
-	printfln("")
-	for &track in clip.tracks {
-
-		printfln("->track target joint: {}", track.targetName)
-		{
-			printfln("--->translations count: {}", len(track.translations))
-			printfln("--->rotations count: {}", len(track.rotations))
-			printfln("--->scalings count: {}", len(track.scalings))
-		}
-		printfln("")
-	}
 }

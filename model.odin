@@ -79,6 +79,12 @@ extract_gltf_skeleton :: proc(data: ^cgltf.data) -> (skeleton: Skeleton) {
 
 	resize(&skeleton.joints, len(data.nodes))
 	resize(&skeleton.jointNames, len(data.nodes))
+	resize(&skeleton.parents, len(data.nodes))
+
+	// for initializing the root node to -1 to make things easier
+	for &parent in skeleton.parents {
+		parent = -1
+	}
 
 	for &_node, index in data.nodes {
 		transform: Transform
@@ -106,7 +112,7 @@ extract_gltf_skeleton :: proc(data: ^cgltf.data) -> (skeleton: Skeleton) {
 
 		for &child in _node.children {
 
-			skeleton.parents[get_node_id(data, child.name)] = u32(index)
+			skeleton.parents[get_node_id(data, child.name)] = i32(index)
 		}
 	}
 
@@ -120,6 +126,7 @@ extract_gltf_animations :: proc(data: ^cgltf.data) -> (clips: [dynamic]Clip) {
 	for &_animation in data.animations {
 
 		clip: Clip
+		clip.name = string(_animation.name)
 		// resize and set node names and indexes
 		resize(&clip.tracks, len(data.nodes))
 		for &_node, index in data.nodes {
@@ -153,7 +160,9 @@ extract_gltf_animations :: proc(data: ^cgltf.data) -> (clips: [dynamic]Clip) {
 				for i: u32 = 0; i < u32(sampler.output.count); i += 1 {
 
 					index := 3 * i
-					traslations := &clip.tracks[targetId].translations
+
+					clip.tracks[targetId].translations.times = keyframes
+					traslations := &clip.tracks[targetId].translations.frames
 					translation := [3]f32{values[index + 0], values[index + 1], values[index + 2]}
 					append(traslations, translation)
 
@@ -168,7 +177,9 @@ extract_gltf_animations :: proc(data: ^cgltf.data) -> (clips: [dynamic]Clip) {
 				for i: u32 = 0; i < u32(sampler.output.count); i += 1 {
 
 					index := 4 * i
-					rotations := &clip.tracks[targetId].rotations
+
+					clip.tracks[targetId].rotations.times = keyframes
+					rotations := &clip.tracks[targetId].rotations.frames
 					orientation := quaternion(
 						w = values[index + 3],
 						x = values[index + 0],
@@ -188,7 +199,9 @@ extract_gltf_animations :: proc(data: ^cgltf.data) -> (clips: [dynamic]Clip) {
 				for i: u32 = 0; i < u32(sampler.output.count); i += 1 {
 
 					index := 3 * i
-					scalings := &clip.tracks[targetId].scalings
+
+					clip.tracks[targetId].scalings.times = keyframes
+					scalings := &clip.tracks[targetId].scalings.frames
 					scaling := [3]f32{values[index + 0], values[index + 1], values[index + 2]}
 					append(scalings, scaling)
 
@@ -206,6 +219,15 @@ extract_gltf_animations :: proc(data: ^cgltf.data) -> (clips: [dynamic]Clip) {
 	}
 
 	return
+}
+
+
+extract_gltf_skins :: proc(data: ^cgltf.data) {
+
+	for &_skin in data.skins {
+
+	}
+
 }
 
 //helpers
@@ -243,6 +265,8 @@ mesh_from_primitive :: proc(_primitive: ^cgltf.primitive) -> (mesh: Mesh) {
 	positions: [dynamic][3]f32
 	normals: [dynamic][3]f32
 	uvs: [dynamic][2]f32
+	weights: [dynamic][4]f32
+	ids: [dynamic][4]u32
 
 
 	//first extract the vertex data(attributes) individually
