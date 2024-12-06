@@ -54,6 +54,8 @@ extract_gltf_data :: proc(path: cstring) -> ^cgltf.data {
 
 extract_gltf_meshes :: proc(data: ^cgltf.data) -> (meshes: [dynamic]Mesh) {
 
+	fmt.printfln("number of textures {}", len(data.textures))
+
 	for &_mesh in data.meshes {
 
 		primitives := _mesh.primitives
@@ -77,7 +79,7 @@ extract_gltf_meshes :: proc(data: ^cgltf.data) -> (meshes: [dynamic]Mesh) {
 // get the models rest pose
 extract_gltf_skeleton :: proc(data: ^cgltf.data) -> (skeleton: Skeleton) {
 
-	resize(&skeleton.joints, len(data.nodes))
+	resize(&skeleton.restPose, len(data.nodes))
 	resize(&skeleton.jointNames, len(data.nodes))
 	resize(&skeleton.parents, len(data.nodes))
 
@@ -108,7 +110,7 @@ extract_gltf_skeleton :: proc(data: ^cgltf.data) -> (skeleton: Skeleton) {
 
 
 		skeleton.jointNames[index] = string(_node.name)
-		skeleton.joints[index] = transform
+		skeleton.restPose[index] = transform
 
 		for &child in _node.children {
 
@@ -151,6 +153,7 @@ extract_gltf_skins :: proc(data: ^cgltf.data) {
 
 	for &_skin in data.skins {
 
+		//_skin.
 	}
 
 }
@@ -259,7 +262,6 @@ mesh_from_primitive :: proc(_primitive: ^cgltf.primitive) -> (mesh: Mesh) {
 
 		vert.norm = normals[i]
 
-		vert.uv = [2]f32{0.0, 0.0}
 		if (i < u32(len(uvs))) {
 
 			vert.uv = uvs[i]

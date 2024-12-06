@@ -49,7 +49,7 @@ debug_clip_info :: proc(clip: ^Clip) {
 debug_skeleton :: proc(skeleton: ^Skeleton) {
 	using fmt
 
-	for &_joint, index in skeleton.joints {
+	for &_joint, index in skeleton.restPose {
 
 		printfln(
 			"joint name: {}, id: {}, parent id: {}",
@@ -58,13 +58,13 @@ debug_skeleton :: proc(skeleton: ^Skeleton) {
 			skeleton.parents[index],
 		)
 
-		t := skeleton.joints[index].position
+		t := _joint.position
 		printfln("translation: %.2f,%.2f,%.2f", t[0], t[1], t[2])
 
-		r := skeleton.joints[index].rotation
+		r := _joint.rotation
 		printfln("rotation: %.2f,%.2f,%.2f,%.2f", r.x, r.y, r.z, r.w)
 
-		s := skeleton.joints[index].scaling
+		s := _joint.scaling
 		printfln("scaling: %.2f,%.2f,%.2f\n", s[0], s[1], s[2])
 	}
 }

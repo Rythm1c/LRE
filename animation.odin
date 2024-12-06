@@ -11,8 +11,7 @@ QuatTrack :: struct {
 }
 
 JointTrack :: struct {
-	//arranged in parllel to skeleton bones
-	//in clip array 
+	//arranged in parallel to skeleton bones in clip struct 
 	targetName:    string,
 	start, finish: f32,
 	translations:  Vec3Track,

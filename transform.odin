@@ -22,3 +22,14 @@ transform_to_mat :: proc(t: Transform) -> Mat4 {
 
 
 }
+
+combine_transforms :: proc(t1: ^Transform, t2: ^Transform) -> (result: Transform) {
+
+	result.scaling = t1.scaling * t2.scaling
+	result.rotation = t1.rotation * t2.rotation
+	result.position = la.quaternion128_mul_vector3(t1.rotation, (t1.scaling * t2.position))
+	result.position += t1.position
+
+	return
+
+}
