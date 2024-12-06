@@ -54,7 +54,13 @@ extract_gltf_data :: proc(path: cstring) -> ^cgltf.data {
 
 extract_gltf_meshes :: proc(data: ^cgltf.data) -> (meshes: [dynamic]Mesh) {
 
-	fmt.printfln("number of textures {}", len(data.textures))
+	/* fmt.printfln("number of textures {}", len(data.textures))
+	fmt.printfln("number of skinned mesh {}", len(data.skins))
+
+	for &_texture in data.textures {
+		fmt.printfln("name of texture: {}", _texture.image_.uri)
+
+	} */
 
 	for &_mesh in data.meshes {
 
@@ -82,6 +88,7 @@ extract_gltf_skeleton :: proc(data: ^cgltf.data) -> (skeleton: Skeleton) {
 	resize(&skeleton.restPose, len(data.nodes))
 	resize(&skeleton.jointNames, len(data.nodes))
 	resize(&skeleton.parents, len(data.nodes))
+	resize(&skeleton.inverseBindPose, len(data.nodes))
 
 	// for initializing the root node to -1 to make things easier
 	for &parent in skeleton.parents {
@@ -108,7 +115,6 @@ extract_gltf_skeleton :: proc(data: ^cgltf.data) -> (skeleton: Skeleton) {
 			transform.scaling = {1, 1, 1}
 		}
 
-
 		skeleton.jointNames[index] = string(_node.name)
 		skeleton.restPose[index] = transform
 
@@ -116,6 +122,32 @@ extract_gltf_skeleton :: proc(data: ^cgltf.data) -> (skeleton: Skeleton) {
 
 			skeleton.parents[get_node_id(data, child.name)] = i32(index)
 		}
+	}
+
+	for &_skin in data.skins {
+
+		//holds the actual matrices
+		fvs: [dynamic]f32
+		get_scalar_values(&fvs, 16, _skin.inverse_bind_matrices)
+		count := _skin.inverse_bind_matrices.count
+
+
+		for i: u32 = 0; i < u32(count); i += 1 {
+
+			j := i * 16
+			inverseMat := matrix[4, 4]f32{
+				fvs[j + 0], fvs[j + 1], fvs[j + 2], fvs[j + 3], 
+				fvs[j + 4], fvs[j + 5], fvs[j + 6], fvs[j + 7], 
+				fvs[j + 8], fvs[j + 9], fvs[j + 10], fvs[j + 11], 
+				fvs[j + 12], fvs[j + 13], fvs[j + 14], fvs[j + 15], 
+			}
+
+			jointName := _skin.joints[i].name
+			skeleton.inverseBindPose[get_node_id(data, jointName)] = la.transpose(inverseMat)
+
+		}
+
+
 	}
 
 	return
@@ -148,15 +180,6 @@ extract_gltf_animations :: proc(data: ^cgltf.data) -> (clips: [dynamic]Clip) {
 	return
 }
 
-
-extract_gltf_skins :: proc(data: ^cgltf.data) {
-
-	for &_skin in data.skins {
-
-		//_skin.
-	}
-
-}
 
 //helpers
 @(private = "file")

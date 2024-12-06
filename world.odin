@@ -13,9 +13,9 @@ astronautSrc: cstring = "models/astronaut/scene.gltf"
 astronaut: Model
 
 
-model: Mat4
-view: Mat4
-proj: Mat4
+model: matrix[4, 4]f32
+view: matrix[4, 4]f32
+proj: matrix[4, 4]f32
 fov := la.to_radians(f32(45.0))
 
 //shader sources/locations

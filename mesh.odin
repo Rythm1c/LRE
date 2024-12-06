@@ -36,17 +36,29 @@ init_mesh :: proc(mesh: ^Mesh) {
 			gl.STATIC_DRAW,
 		)
 	}
-
+	//_________________________________________________________________________________________________
+	// set pointer for position attributes
 	gl.EnableVertexAttribArray(0)
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, size_of(Vertex), uintptr(0))
-
+	//_________________________________________________________________________________________________
+	// set pointer for normal attributes
 	gl.EnableVertexAttribArray(1)
 	gl.VertexAttribPointer(1, 3, gl.FLOAT, false, size_of(Vertex), offset_of(Vertex, norm))
-
+	//_________________________________________________________________________________________________
+	// set pointer for texture coordinates attributes
 	gl.EnableVertexAttribArray(2)
 	gl.VertexAttribPointer(2, 2, gl.FLOAT, false, size_of(Vertex), offset_of(Vertex, uv))
+	//_________________________________________________________________________________________________
+	// set pointer for joint weights attributes
+	gl.EnableVertexAttribArray(3)
+	gl.VertexAttribPointer(4, 4, gl.FLOAT, false, size_of(Vertex), offset_of(Vertex, weights))
+	//_________________________________________________________________________________________________
+	// set pointer for joint id attributes
+	gl.EnableVertexAttribArray(4)
+	gl.VertexAttribIPointer(4, 4, gl.INT, size_of(Vertex), offset_of(Vertex, ids))
 
-
+	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+	gl.BindVertexArray(0)
 }
 
 render_mesh :: proc(mesh: ^Mesh) {

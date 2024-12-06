@@ -62,7 +62,7 @@ camera_rotate :: proc(x, y: i32) {
 }
 
 
-camera_view :: proc() -> Mat4 {
+camera_view :: proc() -> matrix[4, 4]f32 {
 
 	return la.matrix4_look_at_f32(
 		camera.pos, //

@@ -2,7 +2,7 @@ package lre
 
 Skeleton :: struct {
 	restPose:        [dynamic]Transform,
-	inverseBindPose: [dynamic]Mat4,
+	inverseBindPose: [dynamic]matrix[4, 4]f32,
 	parents:         [dynamic]i32,
 	jointNames:      [dynamic]string,
 }
@@ -19,6 +19,7 @@ get_global_transform :: proc(skeleton: ^Skeleton, index: u32) -> (transform: Tra
 		parentTransform := skeleton.restPose[p]
 
 		transform = combine_transforms(&transform, &parentTransform)
+		//transform->combine_transforms(&parentTransform)
 
 		p = skeleton.parents[p]
 	}

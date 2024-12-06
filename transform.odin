@@ -7,7 +7,7 @@ Transform :: struct {
 	rotation:          quaternion128,
 }
 
-transform_to_mat :: proc(t: Transform) -> Mat4 {
+transform_to_mat :: proc(t: Transform) -> matrix[4, 4]f32 {
 	x := la.quaternion128_mul_vector3(t.rotation, [3]f32{1.0, 0.0, 0.0})
 	y := la.quaternion128_mul_vector3(t.rotation, [3]f32{0.0, 1.0, 0.0})
 	z := la.quaternion128_mul_vector3(t.rotation, [3]f32{0.0, 0.0, 1.0})
