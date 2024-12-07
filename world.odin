@@ -9,7 +9,7 @@ shapes: map[string]Shape
 // 3D gltf models
 textureId: u32
 textureSrc: string = "models/astronaut/textures/m_main_baseColor.png"
-astronautSrc: cstring = "models/astronaut/scene.gltf"
+astronautSrc: cstring = "models/alien/Alien.gltf"
 astronaut: Model
 
 
@@ -117,7 +117,7 @@ render_world :: proc() {
 	}
 
 	model = transform_to_mat(astronaut.transform)
-	update_uniform_int(program, "textured", 1)
+	update_uniform_int(program, "textured", 0)
 	gl.ActiveTexture(gl.TEXTURE0)
 	bind_texture(textureId)
 	update_uniform_int(program, "enableGrid", 0)

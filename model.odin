@@ -54,23 +54,31 @@ extract_gltf_data :: proc(path: cstring) -> ^cgltf.data {
 
 extract_gltf_meshes :: proc(data: ^cgltf.data) -> (meshes: [dynamic]Mesh) {
 
-	/* fmt.printfln("number of textures {}", len(data.textures))
-	fmt.printfln("number of skinned mesh {}", len(data.skins))
+	skin: ^cgltf.skin
+	ids: [dynamic]u32
 
-	for &_texture in data.textures {
-		fmt.printfln("name of texture: {}", _texture.image_.uri)
+	if (len(data.skins) > 0) {
 
-	} */
+		skin = &data.skins[0]
+		resize(&ids, len(skin.joints))
+
+		for &_joint, index in skin.joints {
+			ids[index] = u32(get_node_id(&data.nodes, _joint.name))
+			fmt.printfln("{}", ids[index])
+		}
+	}
+
 
 	for &_mesh in data.meshes {
 
 		primitives := _mesh.primitives
 
+
 		for &_primitive in primitives {
 
 			if (_primitive.attributes == nil) {continue}
 
-			append(&meshes, mesh_from_primitive(&_primitive))
+			append(&meshes, mesh_from_primitive(&_primitive, &ids))
 
 
 		}
@@ -98,32 +106,37 @@ extract_gltf_skeleton :: proc(data: ^cgltf.data) -> (skeleton: Skeleton) {
 	for &_node, index in data.nodes {
 		transform: Transform
 
-
+		//____________________________________________________________________________________
+		//____________________________________________________________________________________
 		if (_node.has_translation) {
 
 			transform.position = _node.translation
 		}
-
+		//____________________________________________________________________________________
+		//____________________________________________________________________________________
 		if (_node.has_rotation) {
 			v: [4]f32 = _node.rotation
 			transform.rotation = quaternion(w = v[3], x = v[0], y = v[1], z = v[2])
 		}
-
+		//____________________________________________________________________________________
+		//____________________________________________________________________________________
 		if (_node.has_scale) {
 			transform.scaling = _node.scale
 		} else {
 			transform.scaling = {1, 1, 1}
 		}
-
+		//____________________________________________________________________________________
+		//____________________________________________________________________________________
 		skeleton.jointNames[index] = string(_node.name)
 		skeleton.restPose[index] = transform
 
 		for &child in _node.children {
 
-			skeleton.parents[get_node_id(data, child.name)] = i32(index)
+			skeleton.parents[get_node_id(&data.nodes, child.name)] = i32(index)
 		}
 	}
 
+	//assume theres only one skin in mesh 
 	for &_skin in data.skins {
 
 		//holds the actual matrices
@@ -143,7 +156,9 @@ extract_gltf_skeleton :: proc(data: ^cgltf.data) -> (skeleton: Skeleton) {
 			}
 
 			jointName := _skin.joints[i].name
-			skeleton.inverseBindPose[get_node_id(data, jointName)] = la.transpose(inverseMat)
+			skeleton.inverseBindPose[get_node_id(&data.nodes, jointName)] = la.transpose(
+				inverseMat,
+			)
 
 		}
 
@@ -169,7 +184,7 @@ extract_gltf_animations :: proc(data: ^cgltf.data) -> (clips: [dynamic]Clip) {
 
 		for &_channel in _animation.channels {
 
-			targetId := u32(get_node_id(data, _channel.target_node.name))
+			targetId := u32(get_node_id(&data.nodes, _channel.target_node.name))
 
 			proccess_channel(&_channel, targetId, &clip)
 		}
@@ -180,6 +195,8 @@ extract_gltf_animations :: proc(data: ^cgltf.data) -> (clips: [dynamic]Clip) {
 	return
 }
 
+
+extract_gltf_materials :: proc(data: ^cgltf.data) {}
 
 //helpers
 @(private = "file")
@@ -196,9 +213,9 @@ get_scalar_values :: proc(out: ^[dynamic]f32, compCount: u32, accessor: ^cgltf.a
 }
 
 @(private = "file")
-get_node_id :: proc(data: ^cgltf.data, name: cstring) -> i32 {
+get_node_id :: proc(nodes: ^[]cgltf.node, name: cstring) -> i32 {
 
-	for &_node, index in data.nodes {
+	for &_node, index in nodes {
 		if (_node.name == name) {
 
 			return i32(index)
@@ -211,7 +228,7 @@ get_node_id :: proc(data: ^cgltf.data, name: cstring) -> i32 {
 }
 
 @(private = "file")
-mesh_from_primitive :: proc(_primitive: ^cgltf.primitive) -> (mesh: Mesh) {
+mesh_from_primitive :: proc(_primitive: ^cgltf.primitive, skin: ^[dynamic]u32) -> (mesh: Mesh) {
 
 	positions: [dynamic][3]f32
 	normals: [dynamic][3]f32
@@ -240,38 +257,70 @@ mesh_from_primitive :: proc(_primitive: ^cgltf.primitive) -> (mesh: Mesh) {
 			compCount = 4
 		}
 
+		//floating point values
+		fvs: [dynamic]f32
+		get_scalar_values(&fvs, compCount, attrAccessor)
 
-		values: [dynamic]f32
-		get_scalar_values(&values, compCount, attrAccessor)
-
-		if (values == nil) {continue}
+		if (fvs == nil) {continue}
 
 		for i: u32 = 0; i < u32(attrAccessor.count); i += 1 {
 			index := i * compCount
 
 			#partial switch _attribute.type 
 			{
-
+			//____________________________________________________________________________________
+			//____________________________________________________________________________________
 			//get texture coordinates if any 
 			case .texcoord:
-				append(&uvs, [2]f32{values[index + 0], values[index + 1]})
+				append(&uvs, [2]f32{fvs[index + 0], fvs[index + 1]})
 
-
+			//____________________________________________________________________________________
+			//____________________________________________________________________________________
 			//get position coordinates 
 			case .position:
-				append(&positions, [3]f32{values[index + 0], values[index + 1], values[index + 2]})
+				append(&positions, [3]f32{fvs[index + 0], fvs[index + 1], fvs[index + 2]})
 
-
+			//____________________________________________________________________________________
+			//____________________________________________________________________________________
 			//get normal coordinates 
 			case .normal:
-				append(&normals, [3]f32{values[index + 0], values[index + 1], values[index + 2]})
+				append(&normals, [3]f32{fvs[index + 0], fvs[index + 1], fvs[index + 2]})
+			//____________________________________________________________________________________
+			//____________________________________________________________________________________
+			//get weights of influencing joints 
+			case .weights:
+				append(
+					&weights,
+					[4]f32{fvs[index + 0], fvs[index + 1], fvs[index + 2], fvs[index + 3]},
+				)
+			//____________________________________________________________________________________
+			//____________________________________________________________________________________
+			// get joint id's
+			case .joints:
+				joints := [4]u32 {
+					u32(fvs[index + 0] + 0.5),
+					u32(fvs[index + 1] + 0.5),
+					u32(fvs[index + 2] + 0.5),
+					u32(fvs[index + 3] + 0.5),
+				}
 
+				joints = [4]u32 {
+					la.max(u32(0), skin[joints[0]]),
+					la.max(u32(0), skin[joints[1]]),
+					la.max(u32(0), skin[joints[2]]),
+					la.max(u32(0), skin[joints[3]]),
+				}
+
+				append(&ids, joints)
+			//____________________________________________________________________________________
+			//____________________________________________________________________________________
 
 			}
 		}
 
 
 	}
+
 
 	posCount := len(positions)
 
@@ -286,9 +335,15 @@ mesh_from_primitive :: proc(_primitive: ^cgltf.primitive) -> (mesh: Mesh) {
 		vert.norm = normals[i]
 
 		if (i < u32(len(uvs))) {
-
 			vert.uv = uvs[i]
+		}
 
+		if (i < u32(len(weights))) {
+			vert.weights = weights[i]
+		}
+
+		if (i < u32(len(ids))) {
+			vert.ids = ids[i]
 		}
 
 		mesh.vertices[i] = vert
@@ -333,7 +388,8 @@ proccess_channel :: proc(_channel: ^cgltf.animation_channel, targetId: u32, clip
 
 	keyframes, values: [dynamic]f32
 	get_scalar_values(&keyframes, 1, sampler.input)
-
+	//____________________________________________________________________________________
+	//____________________________________________________________________________________
 	//compCount := 0
 	if _channel.target_path == .translation {
 		get_scalar_values(&values, 3, sampler.output)
@@ -351,7 +407,8 @@ proccess_channel :: proc(_channel: ^cgltf.animation_channel, targetId: u32, clip
 		}
 
 	}
-
+	//____________________________________________________________________________________
+	//____________________________________________________________________________________
 	if _channel.target_path == .rotation {
 		get_scalar_values(&values, 4, sampler.output)
 
@@ -373,7 +430,8 @@ proccess_channel :: proc(_channel: ^cgltf.animation_channel, targetId: u32, clip
 		}
 
 	}
-
+	//____________________________________________________________________________________
+	//____________________________________________________________________________________
 	if _channel.target_path == .scale {
 		get_scalar_values(&values, 3, sampler.output)
 
@@ -390,7 +448,8 @@ proccess_channel :: proc(_channel: ^cgltf.animation_channel, targetId: u32, clip
 		}
 
 	}
-
+	//____________________________________________________________________________________
+	//____________________________________________________________________________________
 
 	//fmt.printfln("{}", _channel.target_node.name)
 
