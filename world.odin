@@ -1,6 +1,8 @@
 package lre
 
+import "core:fmt"
 import la "core:math/linalg"
+import "core:strings"
 import gl "vendor:OpenGL"
 
 
@@ -9,7 +11,7 @@ shapes: map[string]Shape
 // 3D gltf models
 textureId: u32
 textureSrc: string = "models/astronaut/textures/m_main_baseColor.png"
-astronautSrc: cstring = "models/alien/Alien.gltf"
+astronautSrc: cstring = "models/astronaut/scene.gltf"
 astronaut: Model
 
 
@@ -21,14 +23,23 @@ fov := la.to_radians(f32(45.0))
 //shader sources/locations
 fs_src: string = "shaders/shader.frag"
 vs_src: string = "shaders/shader.vert"
+anim_src: string = "shaders/animation.vert"
 program: u32
+animProgram: u32
+
+elapsed: f32
 
 init_world :: proc() {
 
 
 	program, _ = gl.load_shaders_file(vs_src, fs_src)
+	animProgram, _ = gl.load_shaders_file(anim_src, fs_src)
+
 	use_shader_program(program)
 	update_uniform_int(program, "tex", 0)
+
+	use_shader_program(animProgram)
+	update_uniform_int(animProgram, "tex", 0)
 
 	// test shapes
 	cube: Shape
@@ -68,8 +79,8 @@ init_world :: proc() {
 
 	astronautData := extract_gltf_data(astronautSrc)
 	defer destroy_gltf_data(astronautData)
-	clips := extract_gltf_animations(astronautData)
-	skeleton := extract_gltf_skeleton(astronautData)
+	astronaut.clips = extract_gltf_animations(astronautData)
+	astronaut.skeleton = extract_gltf_skeleton(astronautData)
 	astronaut.meshes = extract_gltf_meshes(astronautData)
 	astronaut.color = {1.0, 1.0, 1.0}
 	astronaut.position = {1.0, 4.0, 7.0}
@@ -78,11 +89,7 @@ init_world :: proc() {
 	textureId = texture_from_file(textureSrc)
 
 	//debug_skeleton(&skeleton)
-	/* 
-	for &clip in clips {
-		debug_clip_info(&clip)
-	}
-	*/
+
 
 	camera.pos = {0.0, 7.0, -3.0}
 
@@ -90,18 +97,33 @@ init_world :: proc() {
 }
 
 update_world :: proc() {
+	elapsed += f32(delta)
+
 	view = camera_view()
 	proj = la.matrix4_perspective_f32(fov, win_ratio(), 0.01, 600.0)
+
+	//	update_model_animation(&astronaut, elapsed)
 
 	//update once
 	use_shader_program(program)
 	update_uniform_mat4(program, "view", &view)
 	update_uniform_mat4(program, "proj", &proj)
 	update_uniform_vec3(program, "lDir", {-0.2, -0.6, 0.6})
-}
 
+	use_shader_program(animProgram)
+	update_uniform_mat4(animProgram, "view", &view)
+	update_uniform_mat4(animProgram, "proj", &proj)
+	update_uniform_vec3(animProgram, "lDir", {-0.2, -0.6, 0.6})
+}
+//render everything
 render_world :: proc() {
 
+	render_static()
+	render_animated()
+
+}
+
+render_static :: proc() {
 	use_shader_program(program)
 	//update per object
 	for k, &v in shapes {
@@ -116,16 +138,26 @@ render_world :: proc() {
 
 	}
 
+}
+
+render_animated :: proc() {
+
+	use_shader_program(animProgram)
+
+	mats := get_model_animation(&astronaut)
+	for &mat, index in mats {
+		update_uniform_mat4(animProgram, fmt.aprint("boneMats[{}]", index), &mat)
+	}
+
 	model = transform_to_mat(astronaut.transform)
-	update_uniform_int(program, "textured", 0)
+	update_uniform_int(animProgram, "textured", 1)
 	gl.ActiveTexture(gl.TEXTURE0)
 	bind_texture(textureId)
-	update_uniform_int(program, "enableGrid", 0)
-	update_uniform_int(program, "gridCount", 0)
-	update_uniform_mat4(program, "model", &model)
-	update_uniform_vec3(program, "inCol", astronaut.color)
+	update_uniform_int(animProgram, "enableGrid", 0)
+	update_uniform_int(animProgram, "gridCount", 0)
+	update_uniform_mat4(animProgram, "model", &model)
+	update_uniform_vec3(animProgram, "inCol", astronaut.color)
 	render_model(&astronaut)
-
 
 }
 

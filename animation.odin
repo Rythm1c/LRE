@@ -3,57 +3,112 @@ package lre
 import "core:fmt"
 import la "core:math/linalg"
 
-Vec3Track :: struct {
-	times:  [dynamic]f32,
-	frames: [dynamic][3]f32,
-}
+//not the cleanest approach 
 
-QuatTrack :: struct {
+Track :: struct($T: typeid) {
 	times:  [dynamic]f32,
-	frames: [dynamic]quaternion128,
+	frames: [dynamic]T,
 }
+Vec3Track :: Track([3]f32)
+QuatTrack :: Track(quaternion128)
 
 JointTrack :: struct {
 	//arranged in parallel to skeleton bones in clip struct 
-	targetName:    string,
-	start, finish: f32,
-	translations:  Vec3Track,
-	rotations:     QuatTrack,
-	scalings:      Vec3Track,
+	targetName:   string,
+	targetId:     u32,
+	start, end:   f32,
+	translations: Vec3Track,
+	rotations:    QuatTrack,
+	scalings:     Vec3Track,
 }
-//tracks are arranged in parallel to skeleton joints to match target joint's index
+//
 Clip :: struct {
-	name:          string,
-	start, finish: f32,
-	tracks:        [dynamic]JointTrack,
+	name:       string,
+	start, end: f32,
+	tracks:     [dynamic]JointTrack "tracks are arranged in parallel to skeleton joints to match target joint's index",
+}
+
+set_clip_duration :: proc(clip: ^Clip) {
+
+	/* start, finish: f32 */
+	set := false
+
+	for &track in clip.tracks {
+		set_duration_joint_track(&track)
+		if !set {
+
+			clip.start = track.start
+			clip.end = track.end
+		} else {
+
+			if clip.start > track.start {
+
+				clip.start = track.start
+			}
+
+			if clip.end < track.end {
+
+				clip.end = track.end
+			}
+		}
+
+	}
+
+
+}
+
+//extract sample animated pose with respect to the elaplsed time  
+sample_clip :: proc(
+	ref: ^[dynamic]Transform,
+	clip: ^Clip,
+	time: f32,
+) -> (
+	out: [dynamic]Transform,
+) {
+
+	out = ref^
+
+	for &track in clip.tracks {
+
+		targetIndex := track.targetId
+
+		animated := sample_joint_track(&track, &out[targetIndex], time)
+
+		out[targetIndex] = animated
+	}
+
+	return
 }
 
 
+@(private = "file")
 sample_joint_track :: proc(
 	track: ^JointTrack,
-	refference: ^Transform,
+	ref: ^Transform,
 	time: f32,
 ) -> (
 	transform: Transform,
 ) {
 
-	transform = refference^
+	transform = ref^
 	if (len(track.translations.frames) > 0) {
 
-		transform.position = sample_vec3_track(&track.translations, time)
+		transform.position = sample_track(&track.translations, time)
 	}
 	if (len(track.rotations.frames) > 0) {
 
-		transform.rotation = sample_quat_track(&track.rotations, time)
+		transform.rotation = sample_track(&track.rotations, time)
 	}
 	if (len(track.scalings.frames) > 0) {
 
-		transform.scaling = sample_vec3_track(&track.scalings, time)
+		transform.scaling = sample_track(&track.scalings, time)
 	}
 
 	return
 }
-sample_vec3_track :: proc(track: ^Vec3Track, time: f32) -> [3]f32 {
+/*  */
+@(private = "file")
+sample_track :: proc(track: ^Track($T), time: f32) -> T {
 
 	startFrame := get_frame_index(&track.times, time)
 	endFrame := startFrame + 1
@@ -71,27 +126,8 @@ sample_vec3_track :: proc(track: ^Vec3Track, time: f32) -> [3]f32 {
 
 	return result
 }
-//hmmm.... abit of repetition over here for now
-sample_quat_track :: proc(track: ^QuatTrack, time: f32) -> quaternion128 {
 
-	startFrame := get_frame_index(&track.times, time)
-	endFrame := startFrame + 1
-	//not very good at naming 
-	startTime := track.times[startFrame]
-	endTime := track.times[endFrame]
-
-	duration := startTime - endTime
-	currTime := la.mod(time, duration)
-	difference := currTime - startTime
-
-	percentage := difference / duration
-
-	result := la.lerp(track.frames[startFrame], track.frames[endFrame], percentage)
-
-	return result
-}
-
-
+@(private = "file")
 get_frame_index :: proc(times: ^[dynamic]f32, time: f32) -> i32 {
 
 
@@ -100,9 +136,14 @@ get_frame_index :: proc(times: ^[dynamic]f32, time: f32) -> i32 {
 		return 0
 	}
 
+	start := times[0]
+	end := times[size - 1]
+	duration := start - end
+	trimmed := la.mod(time, duration)
+
 	for i: u32 = 0; int(i) < (size - 1); i += 1 {
 
-		if (time < times[i + 1]) {
+		if (trimmed < times[i + 1]) {
 
 			return i32(i)
 
@@ -117,88 +158,57 @@ get_frame_index :: proc(times: ^[dynamic]f32, time: f32) -> i32 {
 }
 
 
-set_duartion_clip :: proc(clip: ^Clip) {
-
-
-	for &track in clip.tracks {
-		set_duartion_joint_track(&track)
-
-	}
-
-}
 @(private = "file")
-set_duartion_joint_track :: proc(track: ^JointTrack) {
+set_duration_joint_track :: proc(track: ^JointTrack) {
 
-	start := start_time(&track.translations)
-	end := end_time(&track.translations)
+	start := track_start_time(&track.translations)
+	end := track_end_time(&track.translations)
+	//set starting time
+	if (start > track_start_time(&track.rotations)) {
 
-	if (start > start_time(&track.rotations)) {
-		start = start_time(&track.rotations)
+		start = track_start_time(&track.rotations)
 
-	} else if (start > start_time(&track.scalings)) {
-		start = start_time(&track.scalings)
+	} else if (start > track_start_time(&track.scalings)) {
+
+		start = track_start_time(&track.scalings)
 
 	}
+	//set ending time
+	if (end < track_end_time(&track.rotations)) {
 
+		end = track_end_time(&track.rotations)
 
-	if (end < end_time(&track.rotations)) {
-		end = end_time(&track.rotations)
+	} else if (end < track_end_time(&track.scalings)) {
 
-	} else if (end < end_time(&track.scalings)) {
-		end = end_time(&track.scalings)
+		end = track_end_time(&track.scalings)
 
 	}
 
 
 	track.start = start
-	track.finish = end
+	track.end = end
 
 }
 
-@(private = "file")
-start_time :: proc {
-	start_time_vec3_track,
-	start_time_quat_track,
-}
-@(private = "file")
-end_time :: proc {
-	end_time_vec3_track,
-	end_time_quat_track,
-}
 
 @(private = "file")
-start_time_vec3_track :: proc(track: ^Vec3Track) -> f32 {
+track_start_time :: proc(track: ^Track($T)) -> f32 {
 
 	if (len(track.times) > 0) {
+
 		return track.times[0]
 	}
 
-	fmt.print("no tracks were found!\nreturning start time 0")
+	fmt.printfln("no tracks were found!\nreturning start time 0")
 	return 0
 }
 @(private = "file")
-end_time_vec3_track :: proc(track: ^Vec3Track) -> f32 {
+track_end_time :: proc(track: ^Track($T)) -> f32 {
 	if (len(track.times) > 0) {
+
 		return track.times[len(track.times) - 1]
 	}
-	fmt.print("no tracks were found!\nreturning end time 0")
-	return 0
-}
-@(private = "file")
-start_time_quat_track :: proc(track: ^QuatTrack) -> f32 {
 
-	if (len(track.times) > 0) {
-		return track.times[0]
-	}
-
-	fmt.print("no tracks were found!\nreturning start time 0")
-	return 0
-}
-@(private = "file")
-end_time_quat_track :: proc(track: ^QuatTrack) -> f32 {
-	if (len(track.times) > 0) {
-		return track.times[len(track.times) - 1]
-	}
-	fmt.print("no tracks were found!\nreturning end time 0")
+	fmt.printfln("no tracks were found!\nreturning end time 0")
 	return 0
 }

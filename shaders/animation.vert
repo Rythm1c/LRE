@@ -6,17 +6,16 @@ layout(location = 2) in vec2 tc;
 layout(location = 3) in vec4 weights;
 layout(location = 4) in ivec4 boneIds;
 
-uniform mat4 transform;
+uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 uniform mat4 lightSpace;
 
-out vs_Out {
-    vec3 normal;
+out VsOut {
+    vec2 uv;
+    vec3 norm;
     vec3 fragPos;
-    vec2 texCoords;
-    vec4 lightSpace;
-} vs_out;
+} vsOut;
 
 const int MAX_BONES = 300;
 const int MAX_BONE_INFLUENCE = 4;
@@ -29,13 +28,13 @@ void main() {
     skin += boneMats[boneIds[2]] * weights[2];
     skin += boneMats[boneIds[3]] * weights[3];
 
-    mat4 final_mat = transform * skin;
+    mat4 final_mat = model * skin;
     gl_Position = projection * view * final_mat * vec4(pos, 1.0);
 
-    vs_out.normal = mat3(transpose(inverse(final_mat))) * norm;
-    vs_out.texCoords = tc;
+    vsOut.norm = mat3(transpose(inverse(final_mat))) * norm;
+    vsOut.uv = tc;
 
-    vs_out.fragPos = vec3(transform * vec4(pos, 1.0));
+    vsOut.fragPos = vec3(model * vec4(pos, 1.0));
    // vs_out.lightSpace=lightSpace;
 
 }

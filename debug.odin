@@ -9,7 +9,7 @@ CEND :: "\033[0m"
 
 // NOTE: arrange this mess later 
 // code needed some debugging
-debug_clip_info :: proc(clip: ^Clip) {
+/* debug_clip_info :: proc(clip: ^Clip) {
 
 	using fmt
 	printfln("\033[95manimation name: {}\033[0m", clip.name)
@@ -45,8 +45,8 @@ debug_clip_info :: proc(clip: ^Clip) {
 
 	}
 }
-
-debug_skeleton :: proc(skeleton: ^Skeleton) {
+ */
+/* debug_skeleton :: proc(skeleton: ^Skeleton) {
 	using fmt
 
 	for &_joint, index in skeleton.restPose {
@@ -68,3 +68,4 @@ debug_skeleton :: proc(skeleton: ^Skeleton) {
 		printfln("scaling: %.2f,%.2f,%.2f\n", s[0], s[1], s[2])
 	}
 }
+ */
