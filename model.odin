@@ -261,7 +261,7 @@ mesh_from_primitive :: proc(_primitive: ^cgltf.primitive, skin: ^[dynamic]u32) -
 		fvs: [dynamic]f32
 		get_scalar_values(&fvs, compCount, attrAccessor)
 
-		if (fvs == nil) {continue}
+		//if (fvs == nil) {continue}
 
 		for i: u32 = 0; i < u32(attrAccessor.count); i += 1 {
 			index := i * compCount
@@ -373,7 +373,7 @@ mesh_from_primitive :: proc(_primitive: ^cgltf.primitive, skin: ^[dynamic]u32) -
 @(private = "file")
 proccess_channel :: proc(_channel: ^cgltf.animation_channel, targetId: u32, clip: ^Clip) {
 
-	track: JointTrack
+	//track: JointTrack
 
 	sampler := _channel.sampler
 
