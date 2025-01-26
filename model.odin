@@ -25,7 +25,7 @@ update_model_animation :: proc(model: ^Model, elapsed: f32) {
 
 get_model_animation :: proc(model: ^Model) -> (out: [dynamic]matrix[4, 4]f32) {
 
-	animatedPose := &model.skeleton.restPose
+	animatedPose := &model.skeleton.animatedPose
 	invMats := &model.skeleton.invBindPose
 
 	pose := get_global_transforms(animatedPose)

@@ -53,31 +53,27 @@ init_world :: proc() {
 	platform.scaling = {1e2, 1, 1e2}
 	platform.gridCount = 30
 	platform.enableGrid = 1
-	//platform.transform.rotation = quaternion(w = 1, x = 0, y = 0, z = 0)
 	shapes["platform"] = platform
 
 	cube.mesh = Cube()
 	cube.color = {0.9, 0.5, 0.6}
 	cube.position = {0.0, 3.0, 15.0}
 	cube.scaling = {1.0, 1.0, 1.0}
-	//cube.rotation = quaternion(w = 1, x = 0, y = 0, z = 0)
 	shapes["cube"] = cube
 
 	torus.mesh = Torus(60)
 	torus.color = {0.1, 0.9, 0.7}
 	torus.position = {-6.0, 3.0, 13.0}
 	torus.scaling = {3.0, 3.0, 3.0}
-	//torus.rotation = quaternion(w = 1, x = 0, y = 0, z = 0)
 	shapes["torus"] = torus
 
 	sphere.mesh = Sphere(60, 60)
 	sphere.color = {0.1, 0.4, 0.7}
 	sphere.position = {5.0, 4.0, 15.0}
 	sphere.scaling = {2.0, 2.0, 2.0}
-	//sphere.rotation = quaternion(w = 1, x = 0, y = 0, z = 0)
 	shapes["sphere"] = sphere
 
-	astronautData := extract_gltf_data(astronautSrc)
+	/* astronautData := extract_gltf_data(astronautSrc)
 	defer destroy_gltf_data(astronautData)
 	astronaut.clips = extract_gltf_animations(astronautData)
 	astronaut.skeleton = extract_gltf_skeleton(astronautData)
@@ -86,7 +82,7 @@ init_world :: proc() {
 	astronaut.position = {1.0, 4.0, 7.0}
 	astronaut.scaling = {0.1, 0.1, 0.1}
 	astronaut.rotation = la.quaternion_angle_axis_f32(la.to_radians(f32(180)), {0.0, 1.0, 0.0})
-	textureId = texture_from_file(textureSrc)
+	textureId = texture_from_file(textureSrc) */
 
 	//debug_skeleton(&skeleton)
 
@@ -102,7 +98,7 @@ update_world :: proc() {
 	view = camera_view()
 	proj = la.matrix4_perspective_f32(fov, win_ratio(), 0.01, 600.0)
 
-	//	update_model_animation(&astronaut, elapsed)
+	//update_model_animation(&astronaut, elapsed)
 
 	//update once
 	use_shader_program(program)
@@ -119,7 +115,7 @@ update_world :: proc() {
 render_world :: proc() {
 
 	render_static()
-	render_animated()
+	//render_animated()
 
 }
 
@@ -145,8 +141,11 @@ render_animated :: proc() {
 	use_shader_program(animProgram)
 
 	mats := get_model_animation(&astronaut)
+	fmt.printfln("{}", len(mats))
+
 	for &mat, index in mats {
-		update_uniform_mat4(animProgram, fmt.aprint("boneMats[{}]", index), &mat)
+		imat := la.MATRIX4F32_IDENTITY
+		update_uniform_mat4(animProgram, fmt.aprintf("boneMats[{}]", index), &imat)
 	}
 
 	model = transform_to_mat(astronaut.transform)

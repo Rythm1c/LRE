@@ -109,7 +109,9 @@ sample_joint_track :: proc(
 /*  */
 @(private = "file")
 sample_track :: proc(track: ^Track($T), time: f32) -> T {
-
+	/* if (len(track.times) == 1) {
+		return track.frames[0]
+	} */
 	startFrame := get_frame_index(&track.times, time)
 	endFrame := startFrame + 1
 	//not very good at naming 

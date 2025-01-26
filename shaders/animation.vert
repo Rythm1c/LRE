@@ -8,7 +8,7 @@ layout(location = 4) in ivec4 boneIds;
 
 uniform mat4 model;
 uniform mat4 view;
-uniform mat4 projection;
+uniform mat4 proj;
 uniform mat4 lightSpace;
 
 out VsOut {
@@ -29,7 +29,7 @@ void main() {
     skin += boneMats[boneIds[3]] * weights[3];
 
     mat4 final_mat = model * skin;
-    gl_Position = projection * view * final_mat * vec4(pos, 1.0);
+    gl_Position = proj * view * final_mat * vec4(pos, 1.0);
 
     vsOut.norm = mat3(transpose(inverse(final_mat))) * norm;
     vsOut.uv = tc;

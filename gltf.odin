@@ -31,7 +31,7 @@ extract_gltf_data :: proc(path: cstring) -> ^cgltf.data {
 extract_gltf_meshes :: proc(data: ^cgltf.data) -> (meshes: [dynamic]Mesh) {
 
 	skin: ^cgltf.skin
-	ids: [dynamic]u32
+	ids: [dynamic]i32
 
 	if (len(data.skins) > 0) {
 
@@ -39,7 +39,7 @@ extract_gltf_meshes :: proc(data: ^cgltf.data) -> (meshes: [dynamic]Mesh) {
 		resize(&ids, len(skin.joints))
 
 		for &_joint, index in skin.joints {
-			ids[index] = u32(get_node_id(&data.nodes, _joint.name))
+			ids[index] = get_node_id(&data.nodes, _joint.name)
 			//fmt.printfln("{}", ids[index])
 		}
 	}
@@ -206,13 +206,13 @@ get_node_id :: proc(nodes: ^[]cgltf.node, name: cstring) -> i32 {
 }
 
 @(private = "file")
-mesh_from_primitive :: proc(_primitive: ^cgltf.primitive, skin: ^[dynamic]u32) -> (mesh: Mesh) {
+mesh_from_primitive :: proc(_primitive: ^cgltf.primitive, skin: ^[dynamic]i32) -> (mesh: Mesh) {
 
 	positions: [dynamic][3]f32
 	normals: [dynamic][3]f32
 	uvs: [dynamic][2]f32
 	weights: [dynamic][4]f32
-	ids: [dynamic][4]u32
+	ids: [dynamic][4]i32
 
 
 	//first extract the vertex data(attributes) individually
@@ -275,18 +275,18 @@ mesh_from_primitive :: proc(_primitive: ^cgltf.primitive, skin: ^[dynamic]u32) -
 			//____________________________________________________________________________________
 			// get joint id's
 			case .joints:
-				joints := [4]u32 {
-					u32(fvs[index + 0] + 0.5),
-					u32(fvs[index + 1] + 0.5),
-					u32(fvs[index + 2] + 0.5),
-					u32(fvs[index + 3] + 0.5),
+				joints := [4]i32 {
+					i32(fvs[index + 0] + 0.5),
+					i32(fvs[index + 1] + 0.5),
+					i32(fvs[index + 2] + 0.5),
+					i32(fvs[index + 3] + 0.5),
 				}
 
-				joints = [4]u32 {
-					la.max(u32(0), skin[joints[0]]),
-					la.max(u32(0), skin[joints[1]]),
-					la.max(u32(0), skin[joints[2]]),
-					la.max(u32(0), skin[joints[3]]),
+				joints = [4]i32 {
+					la.max(i32(0), skin[joints[0]]),
+					la.max(i32(0), skin[joints[1]]),
+					la.max(i32(0), skin[joints[2]]),
+					la.max(i32(0), skin[joints[3]]),
 				}
 
 				append(&ids, joints)
