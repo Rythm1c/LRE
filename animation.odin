@@ -66,6 +66,7 @@ sample_clip :: proc(
 	out: [dynamic]Transform,
 ) {
 
+
 	out = ref^
 
 	for &track in clip.tracks {
